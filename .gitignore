@@ -134,3 +134,6 @@ dmypy.json
 # Subl projects
 *.sublime-project
 *.sublime-workspace
+*.h5
+testing
+fastMRI
