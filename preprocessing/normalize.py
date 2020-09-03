@@ -6,7 +6,7 @@ import numpy as np
 
 class Normalization(object):
     """
-    torchvision.Transforms compatible
+    ***torchvision.Transforms compatible***
 
     Normalizes the image in the interval [0, 1] by (x-xmin)/(xmax - xmin)
     along the specified dimension
@@ -14,9 +14,9 @@ class Normalization(object):
     def __init__(self, dim: int):
         """
         Args:
-        dim (int): the dimension for the normalization i.e for a batch of images(size=(batch, i, j, k))
-                   dim=0 would normalize with respect to the entire batch whereas dim=1 normalizes
-                   each individual image
+            dim (int): the dimension for the normalization i.e for a batch of images(size=(batch, i, j, k))
+                       dim=0 would normalize with respect to the entire batch whereas dim=1 normalizes
+                       each individual image
         """
         self.dim = dim
 
@@ -57,8 +57,8 @@ def normalize(img: Union[torch.Tensor, np.ndarray],
         return (img - minimum)/(maximum - minimum)
 
     if isinstance(img, torch.Tensor):
-        maximum = torch.max(input=img, dim=dim, keepdim=tRUE)[0]
-        minimum = torch.min(input=img, dim=dim, keepdim=tRUE)[0]
+        maximum = torch.max(input=img, dim=dim, keepdim=True)[0]
+        minimum = torch.min(input=img, dim=dim, keepdim=True)[0]
     elif isinstance(img, np.ndarray):
         dims = img.ndim
         norm_dim = tuple(range(dim, dims))
