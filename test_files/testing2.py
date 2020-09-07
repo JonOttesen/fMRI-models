@@ -10,7 +10,12 @@ from fastmri.data import transforms as T
 import warnings
 warnings.filterwarnings("ignore")
 
-from dataset import *
+# from dataset import *
+
+from fMRI_dataset_processing import test_main
+
+
+exit()
 
 def slice_to_image(k_slice):
     a = fastmri.ifft2c(T.to_tensor(k_slice))

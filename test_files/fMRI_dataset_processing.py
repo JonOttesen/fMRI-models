@@ -6,6 +6,10 @@ import io
 
 import tarfile
 
+def test_main(name):
+    print(name)
+    print(__name__)
+
 
 def dataset_reader_writer(dataset, output):
 
