@@ -4,8 +4,8 @@ from typing import Union, List
 from copy import deepcopy
 import numpy as np
 
-from .DatasetEntry import DatasetEntry
-from .DatasetInfo import DatasetInfo
+from DatasetEntry import DatasetEntry
+from DatasetInfo import DatasetInfo
 
 
 class DatasetContainer(object):

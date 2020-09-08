@@ -15,7 +15,6 @@ warnings.filterwarnings("ignore")
 from fMRI_dataset_processing import test_main
 
 
-exit()
 
 def slice_to_image(k_slice):
     a = fastmri.ifft2c(T.to_tensor(k_slice))
@@ -119,10 +118,9 @@ def complex_conjugate(k_slice, mask):
     return k_slice
 
 
-a = DatasetContainer()
 
 path = '/home/jon/Documents/CRAI/fMRI/testing/file_brain_AXT1_202_2020034.h5'
-
+"""
 a.add_entry(entry=DatasetEntry(image_path=path,
                                datasetname='fMRI',
                                dataset_type='training',
@@ -135,11 +133,12 @@ a.add_info(info=DatasetInfo(datasetname='fMRI',
                             dataset_type='training',
                             source='fMRI challenge',
                             dataset_description='Data given in the fMRI challenge'))
-
-hf = h5py.File(a[0].image_path)
+"""
+hf = h5py.File(path)
 volume = hf['kspace'][:]
 
-
+print(hf.keys())
+exit()
 slice_kspace = volume[10]
 
 slice_kspace_2 = freq_correction(slice_kspace)

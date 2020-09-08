@@ -4,9 +4,10 @@ from pathlib import Path
 # from logger import TensorboardWriter
 
 import torch
-from numpy import inf
+import numpy as np
 
 from logger import get_logger
+from metrics import MetricTracker
 
 
 class BaseTrainer:
@@ -18,7 +19,13 @@ class BaseTrainer:
                  loss_function: Callable,
                  metric_ftns: Dict[str, Callable],
                  optimizer: torch.optim,
-                 config: dict):
+                 config: dict,
+                 lr_scheduler: torch.optim.lr_scheduler = None,
+                 seed: int = None):
+
+        # Reproducibility is a good thing
+        if isinstance(seed, int):
+            torch.manual_seed(seed)
 
         self.config = config
         self.logger = get_logger(name=__name__)
@@ -26,6 +33,7 @@ class BaseTrainer:
         # setup GPU device if available, move model into configured device
         self.device, device_ids = self.prepare_device(config['n_gpu'])
         self.model = model.to(self.device)
+        self.lr_scheduler = lr_scheduler
 
         # TODO: Use DistributedDataParallel instead
         if len(device_ids) > 1:
@@ -44,6 +52,8 @@ class BaseTrainer:
 
         self.checkpoint_dir = trainer_cfg['save_dir']
 
+        self.metric = MetricTracker(config=config)
+
         # setup visualization writer instance
         # self.writer = TensorboardWriter(config.log_dir, self.logger, trainer_cfg['tensorboard'])
 
@@ -56,19 +66,34 @@ class BaseTrainer:
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def _valid_epoch(self, epoch):
+        """
+        Validation logic after an epoch
+
+        :param epoch: Current epoch number
+        """
+        raise NotImplementedError
+
     def train(self):
         """
         Full training logic
         """
         for epoch in range(self.start_epoch, self.epochs + 1):
-            result = self._train_epoch(epoch)
+            loss_dict = self._train_epoch(epoch)
+            val_dict = self._valid_epoch(epoch)
 
-            # save logged informations into log dict
-            log = {'epoch': epoch}
-            log.update(result)
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
 
+            # save logged information regarding this epoch/iteration
+            self.metric.training_update(loss=loss_dict, epoch=epoch)
+            self.metric.validation_update(metrics=val_dict, epoch=epoch)
+
+            self.logger.info('Epoch/iteration {} completed, run mean statistics:'.format(epoch))
             # print logged informations to the screen
-            for key, value in log.items():
+            for key, values in log.items():
+                value = np.mean(np.array(values))
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
 
             if epoch % self.save_period == 0:
@@ -108,7 +133,8 @@ class BaseTrainer:
             'config': self.config
             }
 
-        filename = str(self.checkpoint_dir / 'checkpoint-epoch{}.pth'.format(epoch))
+        save_path = self.checkpoint_dir / 'epoch_' + str(epoch)
+        filename = str(save_path / 'checkpoint-epoch{}.pth'.format(epoch))
         torch.save(state, filename)
         self.logger.info("Saving checkpoint: {} ...".format(filename))
 
