@@ -3,9 +3,9 @@ import h5py
 
 import torchvision
 
-from DatasetContainer import DatasetContainer
-from DatasetEntry import DatasetEntry
-from DatasetInfo import DatasetInfo
+from .DatasetContainer import DatasetContainer
+from .DatasetEntry import DatasetEntry
+from .DatasetInfo import DatasetInfo
 
 class DatasetLoader(object):
 
@@ -33,7 +33,7 @@ class DatasetLoader(object):
             suffix = Path(image_path).suffix
             if suffix == '.h5':
                 image = self.open_hdf5(image_path=image_path)
-            if suffix == '.nii' or suffix == '.gz':
+            elif suffix in ['.nii', '.gz']:
                 image = self.open_nifti(image_path=image_path)
 
         return self.transforms(image)

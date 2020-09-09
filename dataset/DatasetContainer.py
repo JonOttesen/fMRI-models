@@ -4,8 +4,8 @@ from typing import Union, List
 from copy import deepcopy
 import numpy as np
 
-from DatasetEntry import DatasetEntry
-from DatasetInfo import DatasetInfo
+from .DatasetEntry import DatasetEntry
+from .DatasetInfo import DatasetInfo
 
 
 class DatasetContainer(object):
@@ -80,22 +80,55 @@ class DatasetContainer(object):
                 datasetname: str,
                 dataset_type: str,
                 source: str = 'fastMRI',
-                dataset_description: str = 'Data for fastMRI challenge'):
+                dataset_description: str = 'Data for fastMRI challenge',
+                multicoil=True):
 
         """
         Fills up the container using the folder containing the fastMRI data
         Args:
             path: (str, pathlib.Path), path to the fastMRI data
         """
-        dataset_info = DatasetInfo(datasetname=datasetname,
-                                   dataset_type=dataset_type,
-                                   source=source,
-                                   dataset_description=dataset_description)
         if isinstance(path, str):
             path = Path(path)
         elif not isinstance(path, Path):
             raise TypeError('path argument is {}, expected type is pathlib.Path or str'.format(type(path)))
 
-        files = list(path.glob('*.hdf5'))
-        print(files)
+        files = list(path.glob('*.h5'))
+
+        info = DatasetInfo(
+            datasetname=datasetname,
+            dataset_type=dataset_type,
+            source=source,
+            dataset_description=dataset_description
+            )
+
+        self.add_info(info=info)
+
+        for file in files:
+            filename = file.name
+
+            entry = DatasetEntry(
+                image_path=file,
+                datasetname=datasetname,
+                dataset_type=dataset_type,
+                multicoil=multicoil
+                )
+
+            # Pre or post contrast or None if neither
+            if 'PRE' in filename or 'pre' in filename or 'Pre' in filename:
+                entry.pre_contrast = True
+            elif 'POST' in filename or 'post' in filename or 'Post' in filename:
+                entry.post_contrast = True
+
+            if 'T2' in filename or 't2' in filename:
+                entry.sequence_type = 'T2'
+            elif 'T1' in filename or 't1' in filename:
+                entry.sequence_type = 'T1'
+            elif 'FLAIR' in filename or 'flair' in filename or 'Flair' in filename:
+                entry.sequence_type = 'FLAIR'
+
+            self.add_entry(entry=entry)
+
+        return self
+
 

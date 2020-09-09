@@ -12,6 +12,7 @@ class DatasetEntry(object):
                  sequence_type: str = None,
                  field_strength: float = None,
                  pre_contrast: bool = None,
+                 post_contrast: bool = None,
                  multicoil: bool = None):
 
         if isinstance(image_path, (Path, str)):
@@ -35,6 +36,7 @@ class DatasetEntry(object):
             raise TypeError('The variable multicoil ', pre_contrast, ' need to be boolean')
 
         self.pre_contrast = pre_contrast
+        self.post_contrast = post_contrast
         self.multicoil = multicoil
 
     def __getitem__(self, key):
@@ -57,6 +59,7 @@ class DatasetEntry(object):
                 'sequence_type': self.sequence_type,
                 'field_strength': self.field_strength,
                 'pre_contrast': self.pre_contrast,
+                'post_contrast': self.post_contrast,
                 'multicoil': self.multicoil}
 
     def from_dict(self, in_dict: dict):
@@ -72,4 +75,5 @@ class DatasetEntry(object):
             self.sequence_type = in_dict['sequence_type']
             self.field_strength = in_dict['field_strength']
             self.pre_contrast = in_dict['pre_contrast']
+            self.post_contrast = in_dict['post_contrast']
             self.multicoil = in_dict['multicoil']
