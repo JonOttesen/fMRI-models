@@ -6,8 +6,8 @@ from pathlib import Path
 import torch
 import numpy as np
 
-from logger import get_logger
-from metrics import MetricTracker
+from ..logger import get_logger
+from .metrics import MetricTracker
 
 
 class BaseTrainer:
@@ -32,6 +32,7 @@ class BaseTrainer:
 
         # setup GPU device if available, move model into configured device
         self.device, device_ids = self.prepare_device(config['n_gpu'])
+
         self.model = model.to(self.device)
         self.lr_scheduler = lr_scheduler
 
@@ -114,7 +115,7 @@ class BaseTrainer:
             self.logger.warning("Warning: The number of GPU\'s configured to use is {}, but only {} are available "
                                 "on this machine.".format(n_gpu_use, n_gpu))
             n_gpu_use = n_gpu
-        device = torch.cuda.device('cuda:0' if n_gpu_use > 0 else 'cpu')
+        device = torch.device('cuda:0' if n_gpu_use > 0 else 'cpu')
         list_ids = list(range(n_gpu_use))
         return device, list_ids
 

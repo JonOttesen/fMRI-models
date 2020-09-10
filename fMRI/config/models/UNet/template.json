@@ -3,7 +3,7 @@
     "n_gpu": 1,
 
     "arch": {
-        "type": "Unet",
+        "type": "UNet",
         "args": {}
     },
     "data_loader": {
@@ -11,7 +11,7 @@
         "args":{
             "data_dir": "data/",
             "batch_size": 128,
-            "shuffle": True,
+            "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 2
         }
@@ -21,7 +21,7 @@
         "args":{
             "lr": 0.001,
             "weight_decay": 0,
-            "amsgrad": True
+            "amsgrad": true
         }
     },
     "loss": "nll_loss",
@@ -43,7 +43,7 @@
         "verbosity": 2,
         "monitor": "min val_loss",
         "early_stop": 10,
-        "tensorboard": True
+        "tensorboard": true
 
     }
 }

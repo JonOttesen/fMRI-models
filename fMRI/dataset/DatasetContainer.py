@@ -93,6 +93,7 @@ class DatasetContainer(object):
         elif not isinstance(path, Path):
             raise TypeError('path argument is {}, expected type is pathlib.Path or str'.format(type(path)))
 
+        path = path.absolute()
         files = list(path.glob('*.h5'))
 
         info = DatasetInfo(

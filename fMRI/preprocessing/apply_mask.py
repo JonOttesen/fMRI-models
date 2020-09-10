@@ -16,7 +16,6 @@ class ApplyMaskColumn(object):
         """
         self.mask = mask
 
-
     def __call__(self, tensor: torch.Tensor):
         """
         Args:

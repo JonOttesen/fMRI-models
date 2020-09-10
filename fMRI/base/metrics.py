@@ -5,7 +5,7 @@ from typing import Union, Dict
 import torch
 import numpy as np
 
-from logger import get_logger
+from ..logger import get_logger
 
 class MetricTracker(object):
     """

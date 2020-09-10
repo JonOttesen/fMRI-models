@@ -1,13 +1,14 @@
 from pathlib import Path
 import h5py
 
+import torch
 import torchvision
 
 from .DatasetContainer import DatasetContainer
 from .DatasetEntry import DatasetEntry
 from .DatasetInfo import DatasetInfo
 
-class DatasetLoader(object):
+class DatasetLoader(torch.utils.data.Dataset):
 
     def __init__(self,
                  datasetcontainer: DatasetContainer,
@@ -36,7 +37,10 @@ class DatasetLoader(object):
             elif suffix in ['.nii', '.gz']:
                 image = self.open_nifti(image_path=image_path)
 
-        return self.transforms(image)
+        if self.transforms is not None:
+            return self.transforms(image)
+        else:
+            return image
 
     def open_hdf5(self, image_path):
         hf = h5py.File(image_path)
