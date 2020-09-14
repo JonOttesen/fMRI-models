@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union, List
 from copy import deepcopy
 import numpy as np
+from copy import deepcopy
 
 from .DatasetEntry import DatasetEntry
 from .DatasetInfo import DatasetInfo
@@ -11,11 +12,11 @@ from .DatasetInfo import DatasetInfo
 class DatasetContainer(object):
 
     def __init__(self,
-                 info: List[DatasetInfo] = list(),
-                 entries: List[DatasetEntry] = list()):
+                 info: List[DatasetInfo] = None,
+                 entries: List[DatasetEntry] = None):
 
-        self.entries = entries
-        self.info = info
+        self.info = info if info is not None else list()
+        self.entries = entries if entries is not None else list()
 
     def __getitem__(self, index):
         return self.entries[index]
@@ -40,10 +41,10 @@ class DatasetContainer(object):
         return deepcopy(self.entries)
 
     def add_info(self, info: DatasetInfo):
-        self.info.append(info)
+        self.info.append(deepcopy(info))
 
     def add_entry(self, entry: DatasetEntry):
-        self.entries.append(entry)
+        self.entries.append(deepcopy(entry))
 
     def keys(self):
         return self.to_dict().keys()
@@ -55,8 +56,10 @@ class DatasetContainer(object):
         return container_dict
 
     def from_dict(self, in_dict):
-        self.info.append(DatasetInfo().from_dict(inf) for inf in in_dict['info'])
-        self.entries.append(DatasetEntry().from_dict(entry) for entry in in_dict['entries'])
+        for inf in in_dict['info']:
+            self.info.append(DatasetInfo().from_dict(inf))
+        for entry in in_dict['entries']:
+            self.entries.append(DatasetEntry().from_dict(entry))
 
     def to_json(self, path: Union[str, Path]):
         path = Path(path)
@@ -73,7 +76,10 @@ class DatasetContainer(object):
     def from_json(cls, path: Union[str, Path]):
         with open(path) as json_file:
             data = json.load(json_file)
-        DatasetContainer().from_dict(data)
+        new_container = cls()
+        new_container.from_dict(data)
+        return new_container
+
 
     def fastMRI(self,
                 path: Union[str, Path],

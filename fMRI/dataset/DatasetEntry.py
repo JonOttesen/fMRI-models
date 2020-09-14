@@ -1,4 +1,5 @@
 from typing import Union
+import h5py
 
 from pathlib import Path
 
@@ -45,6 +46,29 @@ class DatasetEntry(object):
     def __str__(self):
         return str(self.to_dict())
 
+    def __repr__(self):
+        return self.__str__()
+
+    def open(self, open_func=None):
+
+        if open_func is not None:
+            image = open_func(self.image_path)
+        else:
+            suffix = Path(self.image_path).suffix
+            if suffix == '.h5':
+                image = self.open_hdf5(self.image_path)
+            elif suffix in ['.nii', '.gz']:
+                image = self.open_nifti(self.image_path)
+
+        return image
+
+    def open_hdf5(self, image_path):
+        return h5py.File(image_path)
+
+    def open_nifti(self, image_path):
+        return NotImplementedError
+
+
     def keys(self):
         return self.to_dict().keys()
 
@@ -77,3 +101,5 @@ class DatasetEntry(object):
             self.pre_contrast = in_dict['pre_contrast']
             self.post_contrast = in_dict['post_contrast']
             self.multicoil = in_dict['multicoil']
+
+        return self

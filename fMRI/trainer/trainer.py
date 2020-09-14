@@ -38,8 +38,8 @@ class Trainer(BaseTrainer):
 
         self.valid_data_loader = valid_data_loader if valid_data_loader is not None else None
 
-
-        self.log_step = int(np.sqrt(data_loader.batch_size))
+        self.len_epoch = len(data_loader)
+        self.log_step = 100
 
     def _train_epoch(self, epoch):
         """

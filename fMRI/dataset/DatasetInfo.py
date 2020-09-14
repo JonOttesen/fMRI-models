@@ -21,6 +21,9 @@ class DatasetInfo(object):
     def __str__(self):
         return str(self.to_dict())
 
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def datasetname(self):
         """
@@ -89,4 +92,6 @@ class DatasetInfo(object):
             self.dataset_type = in_dict['dataset_type']
             self.source = in_dict['source']
             self.dataset_description = in_dict['dataset_description']
+
+        return self
 

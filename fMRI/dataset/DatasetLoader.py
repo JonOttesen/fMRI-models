@@ -14,41 +14,43 @@ class DatasetLoader(torch.utils.data.Dataset):
                  datasetcontainer: DatasetContainer,
                  transforms: torchvision.transforms,
                  open_func: callable = None,
-                 hdf5_key: str = 'kspace'):
+                 img_key: str = 'kspace'):
 
         self.datasetcontainer = datasetcontainer
         self.transforms = transforms
         self.open_func = open_func
-        self.hdf5_key = hdf5_key
+        self.img_key = img_key
 
     def __len__(self):
         return len(self.datasetcontainer)
 
     def __getitem__(self, index):
         entry = self.datasetcontainer[index]
-        image_path = entry.image_path
+        suffix = Path(entry.image_path).suffix
+        image_object = entry.open(open_func=self.open_func)
 
-        if self.open_func is not None:
-            image = self.open_func(image_path)
-        else:
-            suffix = Path(image_path).suffix
-            if suffix == '.h5':
-                image = self.open_hdf5(image_path=image_path)
-            elif suffix in ['.nii', '.gz']:
-                image = self.open_nifti(image_path=image_path)
+        if suffix == '.h5':
+            image = image_object[self.img_key][()]
+        elif suffix in ['.nii', '.gz']:
+            image = image_object[self.img_key][()]
 
+        print(image.shape)
         if self.transforms is not None:
             return self.transforms(image)
         else:
             return image
 
-    def open_hdf5(self, image_path):
-        hf = h5py.File(image_path)
-        volume = hf[self.hdf5_key][:]
-        return volume
+    def __iter__(self):
+        self.current_index = 0
+        self.max_length = len(self)
+        return self
 
-    def open_nifti(self, image_path):
+    def __next__(self):
+        if not self.current_index < self.max_length:
+            raise StopIteration
+        item = self[self.current_index]
+        self.current_index += 1
+        return item
 
-        return NotImplementedError
 
 
