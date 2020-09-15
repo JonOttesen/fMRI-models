@@ -20,12 +20,13 @@ class ApplyMaskColumn(object):
         """
         Args:
             tensor (torch.Tensor): Tensor of the k-space data with
-                                   shape (batch, coil, rows, columns, complex) i.e ndim=5
+                                   shape (coil, rows, columns, complex) i.e ndim=4
         Returns:
             torch.Tensor: K-space tensor with same shape and applied mask
 
         """
-        tensor[:, :, :, self.mask] = 0
+
+        tensor[:, :, self.mask != True] = 0
         return tensor
 
     def __repr__(self):

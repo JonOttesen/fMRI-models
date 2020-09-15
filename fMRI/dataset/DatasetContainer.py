@@ -1,4 +1,6 @@
 import json
+import random
+
 from pathlib import Path
 from typing import Union, List
 from copy import deepcopy
@@ -30,6 +32,10 @@ class DatasetContainer(object):
     def __str__(self):
         return str(self.to_dict())
 
+    def shuffle(self, seed=None):
+        random.seed(seed)
+        random.shuffle(self.entries)
+
     def info_dict(self):
         info_dict = dict()
         for inf in self.info:
@@ -45,6 +51,20 @@ class DatasetContainer(object):
 
     def add_entry(self, entry: DatasetEntry):
         self.entries.append(deepcopy(entry))
+
+    def add_shapes(self, open_func=None, shape=None, keyword=None):
+        """
+        Fetches the shapes of the images for each entry
+        """
+        for entry in self:
+            entry.add_shape(open_func=open_func, shape=shape, keyword=keyword)
+
+    def shapes_given(self):
+        for entry in self:
+            if entry.shape is None:
+                return False
+            else:
+                return True
 
     def keys(self):
         return self.to_dict().keys()

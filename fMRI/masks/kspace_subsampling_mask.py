@@ -72,7 +72,7 @@ class KspaceMask:
             indices = np.random.choice(a=indices, size=high_freq, replace=False)
             mask[indices] = 1
 
-        return torch.from_numpy(mask).int()
+        return torch.from_numpy(mask).bool()
 
 
     def mask_linearly_spaced(self, lines: int, seed: int = None) -> torch.Tensor:
@@ -92,9 +92,9 @@ class KspaceMask:
             if self.randomize_center_fraction:
                 center_frac = np.random.uniform(self.center_fraction - self.randomize_center_interval,
                                                 self.center_fraction + self.randomize_center_interval)
-                low_freq = int(round(center_frac/2*lines))
+                low_freq = int(round(center_frac/2*lines))  # Low freq lines on each side of origin
             else:
-                low_freq = int(round(self.center_fraction/2*lines))
+                low_freq = int(round(self.center_fraction/2*lines))  # Low freq lines on each side of origin
 
             k_0 = int(lines/2)
             high_freq = int(lines/self.acceleration) - low_freq*2
@@ -113,14 +113,4 @@ class KspaceMask:
             mask[left_low_freq] = 1
             mask[right_low_freq] = 1
 
-        return torch.from_numpy(mask).int()
-
-if __name__=='__main__':
-    a = KspaceMask(acceleration=4)
-    print(a.mask_linearly_spaced(lines=320, seed=42).shape)
-
-
-
-
-
-
+        return torch.from_numpy(mask).bool()

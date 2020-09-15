@@ -14,7 +14,8 @@ class DatasetEntry(object):
                  field_strength: float = None,
                  pre_contrast: bool = None,
                  post_contrast: bool = None,
-                 multicoil: bool = None):
+                 multicoil: bool = None,
+                 shape: tuple = None):
 
         if isinstance(image_path, (Path, str)):
             self.image_path = str(image_path)
@@ -39,6 +40,7 @@ class DatasetEntry(object):
         self.pre_contrast = pre_contrast
         self.post_contrast = post_contrast
         self.multicoil = multicoil
+        self.shape = shape
 
     def __getitem__(self, key):
         return self.to_dict()[key]
@@ -63,11 +65,24 @@ class DatasetEntry(object):
         return image
 
     def open_hdf5(self, image_path):
-        return h5py.File(image_path)
+        return h5py.File(image_path, 'r')
 
     def open_nifti(self, image_path):
         return NotImplementedError
 
+    def add_shape(self, open_func=None, shape=None, keyword='kspace'):
+        if isinstance(shape, tuple):
+            self.shape = shape
+        else:
+            img = self.open(open_func=open_func)
+            try:
+                shape = img.shape
+            except:
+                shape = img[keyword].shape
+            else:
+                shape = None
+
+            self.shape = shape
 
     def keys(self):
         return self.to_dict().keys()
@@ -84,7 +99,8 @@ class DatasetEntry(object):
                 'field_strength': self.field_strength,
                 'pre_contrast': self.pre_contrast,
                 'post_contrast': self.post_contrast,
-                'multicoil': self.multicoil}
+                'multicoil': self.multicoil,
+                'shape': self.shape}
 
     def from_dict(self, in_dict: dict):
         """
@@ -101,5 +117,6 @@ class DatasetEntry(object):
             self.pre_contrast = in_dict['pre_contrast']
             self.post_contrast = in_dict['post_contrast']
             self.multicoil = in_dict['multicoil']
+            self.shape = in_dict['shape']
 
         return self

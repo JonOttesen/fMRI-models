@@ -23,7 +23,7 @@ class KspaceToImage(object):
         """
         Args:
             tensor (torch.Tensor): Tensor of the k-space data with shape
-                                   (batch, coils, rows, columns, complex) i.e ndim=5
+                                   (coils, rows, columns, complex) i.e ndim=4
         Returns:
             torch.Tensor: The ifft transformed k-space to image with shape
                           (channels, rows, columns) or
@@ -31,6 +31,7 @@ class KspaceToImage(object):
                           if the complex_absolute is not calculated
 
         """
+
         a = fastmri.ifft2c(tensor)
         if self.complex_absolute:
             b = fastmri.complex_abs(a)
@@ -38,7 +39,7 @@ class KspaceToImage(object):
             b = a
 
         if self.coil_rss:
-            return torch.unsqueeze(fastmri.rss(b, dim=1), 1)  # Add a channels dimension
+            return torch.unsqueeze(fastmri.rss(b, dim=0), 0)  # Add a channels dimension
         else:
             return b  # Use the coils as channels
 
