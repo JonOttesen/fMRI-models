@@ -40,7 +40,7 @@ class BaseTrainer:
         if len(device_ids) > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
-        self.loss_function = loss_function
+        self.loss_function = loss_function.to(self.device)
         self.metric_ftns = metric_ftns
         self.optimizer = optimizer
 

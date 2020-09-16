@@ -30,41 +30,50 @@ class DatasetLoader(torch.utils.data.Dataset):
 
         self.logger = get_logger(name=__name__)
 
+        # Checking if dataloader compatibility is enabled
         if dataloader_compat:
             self.logger.info('torch.utils.data.DataLoader compatibility enabled(default=True),\
                 the first index in shape is assumed to be the slice/image/sample (N, C, H, W).')
 
+            # Checking if all entries have the shape attribute, if not, try to add them.
             if not datasetcontainer.shapes_given():
                 self.logger.info('Image shape must be given in entry, for pytorch\
                     torch.utils.data.DataLoader compatibility.')
                 self.logger.info('Trying to fetch shapes from dataset...')
+
+                # fetching shapes from image files
                 datasetcontainer.add_shapes(open_func=open_func, keyword=img_key)
 
+                # Could not fetch shapes, raise error
                 if not datasetcontainer.shapes_given():
-                    self.logger.warning('Could not fetch shapes, insert manually, aborting program.')
+                    self.logger.warning('Could not fetch shapes,\
+                        insert manually, aborting program.')
                     raise AttributeError
+
                 self.logger.info('All shapes fetched from files, will continue.')
             else:
                 self.logger.info('All entries have the shape attribute, will continue.')
 
             # Create a dict that maps image index to file and image in file index
-            self.index_to_file_and_image = dict()
+            self._index_to_file_and_image = dict()
             counter = 0
             for i, entry in enumerate(datasetcontainer):
                 images = entry.shape[0]
                 for j in range(images):
-                    self.index_to_file_and_image[counter] = (i, j)
+                    self._index_to_file_and_image[counter] = (i, j)
                     counter += 1
+        else:
+            self._index_to_file_and_image = None
 
     def __len__(self):
         if self.dataloader_compat:
-            return len(self.index_to_file_and_image)
+            return len(self._index_to_file_and_image)
         else:
             return len(self.datasetcontainer)
 
     def __getitem__(self, index):
         if self.dataloader_compat:
-            index, image_index = self.index_to_file_and_image[index]  # Fetch image (image_index) from volume (index)
+            index, image_index = self._index_to_file_and_image[index]  # Fetch image (image_index) from volume (index)
         else:
             index = index  # Index corresponds to a file, not image in files
             image_index = ()  # Fetch all images

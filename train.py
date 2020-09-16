@@ -13,6 +13,7 @@ from fMRI import DatasetLoader
 from fMRI import DatasetInfo
 
 from fMRI.preprocessing import *
+from fMRI.models import MultiLoss
 from fMRI.models.reconstruction import UNet
 from fMRI.trainer import Trainer
 from fMRI.masks import KspaceMask
@@ -45,14 +46,12 @@ loader = DatasetLoader(
     truth_transforms=truth_transforms
     )
 
-loss = lambda x, y: SSIM()(x, y) + torch.nn.L1Loss()(x, y)
+loss = [(1, torch.nn.L1Loss()), (1, SSIM())]
+loss = MultiLoss(losses=loss)
 
-load = torch.utils.data.DataLoader(dataset=loader, num_workers=2, batch_size=2)
+load = torch.utils.data.DataLoader(dataset=loader, num_workers=2, batch_size=4)
 
-for (i, j) in load:
-    print(i.shape)
-    print(j.shape)
-    print('------------')
+metrics = {'SSIM': SSIM(), 'MSE': torch.nn.MSELoss()}
 
 model = UNet(n_channels=1, n_classes=1)
 
@@ -61,16 +60,23 @@ path = 'fMRI/config/models/UNet/template.json'
 with open(path, 'r') as inifile:
     config = json.load(inifile)
 
+# optimizer = torch.optim.Optimizer(model.parameters(), config['optimizer'])
+optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+# lr_schedualer = torch.optim.Optimizer(optimizer, config['lr_scheduler'])
+
+
 trainer = Trainer(
     model=model,
     loss_function=loss,
-    metric_ftns=None,
-    optimizer=None,
+    metric_ftns=metrics,
+    optimizer=optimizer,
     config=config,
-    data_loader=loader,
+    data_loader=load,
     valid_data_loader=None,
     lr_scheduler=None,
     seed=42
     )
+
+trainer.train()
 
 

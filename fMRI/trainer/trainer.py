@@ -35,8 +35,7 @@ class Trainer(BaseTrainer):
                          seed=seed)
 
         self.data_loader = data_loader
-
-        self.valid_data_loader = valid_data_loader if valid_data_loader is not None else None
+        self.valid_data_loader = valid_data_loader
 
         self.len_epoch = len(data_loader)
         self.log_step = 100
@@ -53,7 +52,6 @@ class Trainer(BaseTrainer):
 
         for batch_idx, (data, target) in enumerate(self.data_loader):
             data, target = data.to(self.device), target.to(self.device)
-
             self.optimizer.zero_grad()
 
             output = self.model(data)
@@ -81,7 +79,7 @@ class Trainer(BaseTrainer):
         :param epoch: Integer, current training epoch.
         :return: A log that contains information about validation
         """
-        if self.valid_data_loader is not None:
+        if self.valid_data_loader is None:
             return None
 
         self.model.eval()

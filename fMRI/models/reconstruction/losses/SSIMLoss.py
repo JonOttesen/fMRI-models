@@ -27,14 +27,14 @@ class SSIM(nn.Module):
                  k1: float = 0.01,
                  k2: float = 0.03):
 
-        super().__init__()
+        super(SSIM, self).__init__()
         self.size = size
         self.sigma = sigma
         self.k1 = k1
         self.k2 = k2
-        self.gaussian_window = gaussian_window(size=self.size, sigma=self.sigma, channels=channels)
+        self.gaussian_window = torch.nn.Parameter(gaussian_window(size=self.size, sigma=self.sigma, channels=channels))
 
-    def apply_conv2d(self, X: torch.Tensor, window: torch.Tensor, pad: int = 0):
+    def apply_conv2d(self, X: torch.Tensor, pad: int = 0):
         channels = X.shape[1]
         return F.conv2d(input=X,
                         weight=self.gaussian_window,
@@ -54,16 +54,16 @@ class SSIM(nn.Module):
 
         pad = self.size // 2
 
-        mux = self.apply_conv2d(X, self.gaussian_window, pad=pad)
-        muy = self.apply_conv2d(Y, self.gaussian_window, pad=pad)
+        mux = self.apply_conv2d(X, pad=pad)
+        muy = self.apply_conv2d(Y, pad=pad)
 
         mux_sq = mux.pow(2)
         muy_sq = muy.pow(2)
         muxy = mux * muy
 
-        sigmax_sq = self.apply_conv2d(X * X, self.gaussian_window, pad=pad) - mux_sq
-        sigmay_sq = self.apply_conv2d(Y * Y, self.gaussian_window, pad=pad) - muy_sq
-        sigmaxy = self.apply_conv2d(X * Y, self.gaussian_window, pad=pad) - muxy
+        sigmax_sq = self.apply_conv2d(X * X, pad=pad) - mux_sq
+        sigmay_sq = self.apply_conv2d(Y * Y, pad=pad) - muy_sq
+        sigmaxy = self.apply_conv2d(X * Y, pad=pad) - muxy
 
         ssim_map = ((2*muxy + C1)*(2*sigmaxy + C2)/
                    ((mux_sq + muy_sq + C1)*(sigmax_sq + sigmay_sq + C2)))
