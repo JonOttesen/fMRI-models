@@ -32,13 +32,14 @@ class DatasetLoader(torch.utils.data.Dataset):
 
         # Checking if dataloader compatibility is enabled
         if dataloader_compat:
-            self.logger.info('torch.utils.data.DataLoader compatibility enabled(default=True),\
-                the first index in shape is assumed to be the slice/image/sample (N, C, H, W).')
+            self.logger.info('--------------------------------------------------------------')
+            self.logger.info('torch.utils.data.DataLoader compatibility enabled(default=True), '\
+                'the first index in shape is assumed to be the slice/image/sample (N, C, H, W).')
 
             # Checking if all entries have the shape attribute, if not, try to add them.
             if not datasetcontainer.shapes_given():
-                self.logger.info('Image shape must be given in entry, for pytorch\
-                    torch.utils.data.DataLoader compatibility.')
+                self.logger.info('Image shape must be given in entry, for pytorch '\
+                    'torch.utils.data.DataLoader compatibility.')
                 self.logger.info('Trying to fetch shapes from dataset...')
 
                 # fetching shapes from image files
@@ -62,6 +63,7 @@ class DatasetLoader(torch.utils.data.Dataset):
                 for j in range(images):
                     self._index_to_file_and_image[counter] = (i, j)
                     counter += 1
+            self.logger.info('--------------------------------------------------------------')
         else:
             self._index_to_file_and_image = None
 

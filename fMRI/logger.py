@@ -1,4 +1,5 @@
 import logging
+logging.basicConfig(filename='training.log')
 
 levels = {0: logging.NOTSET,
           1: logging.DEBUG,
@@ -15,5 +16,7 @@ def get_logger(name, level=2):
         raise ValueError('level must be {}, not {}'.format(levels.keys(), level))
 
     logger = logging.getLogger(name)
+    logger.addHandler(logging.StreamHandler())
     logger.setLevel(levels[level])
+
     return logger

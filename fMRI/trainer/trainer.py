@@ -93,7 +93,7 @@ class Trainer(BaseTrainer):
                 metrics['loss'].append(self.loss_function(output, target).item())
 
                 for key, metric in self.metric_ftns.items():
-                    metrics[key].append(metric(output, target))
+                    metrics[key].append(metric(output, target).item())
 
         return metrics
 

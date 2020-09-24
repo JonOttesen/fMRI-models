@@ -29,7 +29,7 @@ class MetricTracker(object):
         self.results = dict()
         self.results[self.TRAINING_KEY] = dict()
         self.results[self.VALIDATION_KEY] = dict()
-        self.results[self.CONFIG_KEY] = dict()
+        self.results[self.CONFIG_KEY] = config
 
     def resume(self, resume_path: Union[str, Path]):
         """
@@ -61,7 +61,6 @@ class MetricTracker(object):
         self.results[self.TRAINING_KEY].update(prev[self.TRAINING_KEY])
         self.results[self.VALIDATION_KEY].update(prev[self.VALIDATION_KEY])
 
-
     def training_update(self,
                         loss: Dict[str, list],
                         epoch: int):
@@ -90,6 +89,12 @@ class MetricTracker(object):
         epoch = 'epoch_' + str(epoch)
         self.results[self.VALIDATION_KEY][epoch] = metrics
 
+    def training_metric(self, epoch):
+        return self.results[self.TRAINING_KEY][epoch]
+
+    def validation_metric(self, epoch):
+        return self.results[self.VALIDATION_KEY][epoch]
+
     def write_to_file(self, path: Union[str, Path]):
         """
         Writes MetricTracker to file
@@ -97,7 +102,7 @@ class MetricTracker(object):
             path (str, pathlib.Path): Path where the file is stored,
                                       remember to have .json suffix
         """
-        Path(path).mkdir(parents=True)  # Missing parents are quite the letdown
+        Path(path).parent.mkdir(parents=True, exist_ok=True)  # Missing parents are quite the letdown
         path = str(path)
 
         with open(path, 'w') as outfile:

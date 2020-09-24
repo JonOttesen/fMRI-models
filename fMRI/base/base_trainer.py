@@ -1,6 +1,7 @@
 from typing import List, Callable, Union, Dict
 from abc import abstractmethod
 from pathlib import Path
+import time
 # from logger import TensorboardWriter
 
 import torch
@@ -52,7 +53,7 @@ class BaseTrainer:
         self.start_epoch = 1
 
         self.checkpoint_dir = trainer_cfg['save_dir']
-
+        print(config)
         self.metric = MetricTracker(config=config)
 
         # setup visualization writer instance
@@ -81,8 +82,10 @@ class BaseTrainer:
         Full training logic
         """
         for epoch in range(self.start_epoch, self.epochs + 1):
+            epoch_start_time = time.time()
             loss_dict = self._train_epoch(epoch)
             val_dict = self._valid_epoch(epoch)
+            epoch_end_time = time.time() - epoch_start_time
 
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
@@ -91,14 +94,25 @@ class BaseTrainer:
             self.metric.training_update(loss=loss_dict, epoch=epoch)
             self.metric.validation_update(metrics=val_dict, epoch=epoch)
 
-            self.logger.info('Epoch/iteration {} completed, run mean statistics:'.format(epoch))
+            self.logger.info('Epoch/iteration {} with validation completed in {}, '\
+                'run mean statistics:'.format(epoch, epoch_end_time))
+
             # print logged informations to the screen
-            for key, values in log.items():
-                value = np.mean(np.array(values))
-                self.logger.info('    {:15s}: {}'.format(str(key), value))
+            # training loss
+            for key, loss in loss_dict.items():
+                loss = np.array(loss)
+                self.logger.info('Mean training loss: {}'.format(np.mean(loss)))
+
+            if val_dict is not None:
+                for key, valid in val_dict.items():
+                    valid = np.array(valid)
+                    self.logger.info('Mean validation {}: {}'.format(str(key), np.mean(valid)))
 
             if epoch % self.save_period == 0:
                 self.save_checkpoint(epoch)
+
+        save_path = str(self.checkpoint_dir) + 'statistics.json'
+        self.metric.write_to_file(path=save_path)
 
     def prepare_device(self, n_gpu_use: int):
         """
@@ -134,7 +148,8 @@ class BaseTrainer:
             'config': self.config
             }
 
-        save_path = self.checkpoint_dir / 'epoch_' + str(epoch)
+        save_path = Path(self.checkpoint_dir) / Path('epoch_' + str(epoch))
+        save_path.mkdir(parents=True, exist_ok=True)
         filename = str(save_path / 'checkpoint-epoch{}.pth'.format(epoch))
         torch.save(state, filename)
         self.logger.info("Saving checkpoint: {} ...".format(filename))

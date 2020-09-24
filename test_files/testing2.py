@@ -137,8 +137,6 @@ a.add_info(info=DatasetInfo(datasetname='fMRI',
 hf = h5py.File(path)
 volume = hf['kspace'][:]
 
-print(hf.keys())
-exit()
 slice_kspace = volume[10]
 
 slice_kspace_2 = freq_correction(slice_kspace)
@@ -161,7 +159,7 @@ slice_kspace2 = T.to_tensor(slice_kspace)      # Convert from numpy array to pyt
 slice_image = fastmri.ifft2c(slice_kspace2)           # Apply Inverse Fourier Transform to get the complex image
 slice_image_abs = fastmri.complex_abs(slice_image)   # Compute absolute value to get a real image
 
-# show_coils(slice_image_abs, [0, 5, 10], cmap='gray')
+show_coils(slice_image_abs, [0, 5, 10], cmap='gray')
 
 slice_image_rss = fastmri.rss(slice_image_abs, dim=0)
 

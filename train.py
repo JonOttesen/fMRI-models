@@ -4,6 +4,7 @@ import json
 import time
 
 import torch
+import numpy as np
 
 import torchvision
 import matplotlib.pyplot as plt
@@ -19,6 +20,7 @@ from fMRI.trainer import Trainer
 from fMRI.masks import KspaceMask
 
 from fMRI.models.reconstruction.losses import SSIM
+
 
 a = DatasetContainer()
 b = a.fastMRI(path='testing/', datasetname='fastMRI', dataset_type='training')
@@ -49,7 +51,7 @@ loader = DatasetLoader(
 loss = [(1, torch.nn.L1Loss()), (1, SSIM())]
 loss = MultiLoss(losses=loss)
 
-load = torch.utils.data.DataLoader(dataset=loader, num_workers=2, batch_size=4)
+load = torch.utils.data.DataLoader(dataset=loader, num_workers=1, batch_size=2)
 
 metrics = {'SSIM': SSIM(), 'MSE': torch.nn.MSELoss()}
 
@@ -61,7 +63,7 @@ with open(path, 'r') as inifile:
     config = json.load(inifile)
 
 # optimizer = torch.optim.Optimizer(model.parameters(), config['optimizer'])
-optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr_schedualer = torch.optim.Optimizer(optimizer, config['lr_scheduler'])
 
 
