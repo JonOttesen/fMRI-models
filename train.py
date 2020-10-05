@@ -3,6 +3,8 @@ import json
 
 import time
 
+from pathlib import Path
+
 import torch
 import numpy as np
 
@@ -18,6 +20,7 @@ from fMRI.models import MultiLoss
 from fMRI.models.reconstruction import UNet
 from fMRI.trainer import Trainer
 from fMRI.masks import KspaceMask
+from fMRI.config import ConfigReader
 
 from fMRI.models.reconstruction.losses import SSIM
 
@@ -68,12 +71,10 @@ model = UNet(n_channels=1, n_classes=1)
 
 path = 'fMRI/config/models/UNet/template.json'
 
-with open(path, 'r') as inifile:
-    config = json.load(inifile)
+config = ConfigReader(config=path)
 
-# optimizer = torch.optim.Optimizer(model.parameters(), config['optimizer'])
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-7)
-# lr_schedualer = torch.optim.Optimizer(optimizer, config['lr_scheduler'])
+optimizer = config.optimizer(model_params=model.parameters())
+lr_scheduler = config.lr_scheduler(optimizer=optimizer)
 
 
 trainer = Trainer(
@@ -81,10 +82,10 @@ trainer = Trainer(
     loss_function=loss,
     metric_ftns=metrics,
     optimizer=optimizer,
-    config=config,
+    config=config.configs(),
     data_loader=load,
     valid_data_loader=None,
-    lr_scheduler=None,
+    lr_scheduler=lr_scheduler,
     seed=42
     )
 

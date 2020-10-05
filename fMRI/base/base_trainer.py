@@ -53,7 +53,6 @@ class BaseTrainer:
         self.start_epoch = 1
 
         self.checkpoint_dir = trainer_cfg['save_dir']
-        print(config)
         self.metric = MetricTracker(config=config)
 
         # setup visualization writer instance
@@ -140,11 +139,17 @@ class BaseTrainer:
             epoch (int), the current epoch of the training
         """
         arch = type(self.model).__name__
+        if self.lr_scheduler is not None:  # In case of None
+            scheduler_state_dict = self.lr_scheduler.state_dict()
+        else:
+            scheduler_state_dict = None
+
         state = {
             'arch': arch,
             'epoch': epoch,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
+            'scheduler': scheduler_state_dict,
             'config': self.config
             }
 
@@ -189,5 +194,15 @@ class BaseTrainer:
                                  optimizer parameters are not resumed.")
         else:
             self.optimizer.load_state_dict(checkpoint['optimizer'])
+
+        # load lr_scheduler state from checkpoint only when lr_scheduler type is not changed.
+        if checkpoint['config']['scheduler']['type'] != self.config['scheduler']['type']:
+            self.logger.warning("Warning: Different scheduler from that given in the config,\
+                                 scheduler parameters are not resumed.")
+        elif self.lr_scheduler is None:
+            self.logger.warning("Warning: lr_scheduler is None,\
+                                 scheduler parameters are not resumed.")
+        else:
+            self.lr_scheduler.load_state_dict(checkpoint['optimizer'])
 
         self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))

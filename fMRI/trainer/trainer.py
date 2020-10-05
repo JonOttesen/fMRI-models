@@ -1,4 +1,4 @@
-from typing import Callable, Dict
+from typing import Callable, Dict, Union
 from collections import defaultdict
 
 import numpy as np
@@ -9,6 +9,7 @@ import torch
 # from utils import inf_loop, MetricTracker
 
 from ..base import BaseTrainer
+from ..config import ConfigReader
 
 
 class Trainer(BaseTrainer):
