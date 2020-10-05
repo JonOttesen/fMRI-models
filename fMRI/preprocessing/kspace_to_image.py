@@ -1,6 +1,7 @@
 import torch
 
-import fastmri
+from .fastmri import math
+from .fastmri.coil_combine import rss
 
 class KspaceToImage(object):
     """
@@ -32,14 +33,14 @@ class KspaceToImage(object):
 
         """
 
-        a = fastmri.ifft2c(tensor)
+        a = math.ifft2c(tensor)
         if self.complex_absolute:
-            b = fastmri.complex_abs(a)
+            b = math.complex_abs(a)
         else:
             b = a
 
         if self.coil_rss:
-            return torch.unsqueeze(fastmri.rss(b, dim=0), 0)  # Add a channels dimension
+            return torch.unsqueeze(rss(b, dim=0), 0)  # Add a channels dimension
         else:
             return b  # Use the coils as channels
 

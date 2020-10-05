@@ -25,6 +25,15 @@ from fMRI.models.reconstruction.losses import SSIM
 a = DatasetContainer()
 b = a.fastMRI(path='testing/', datasetname='fastMRI', dataset_type='training')
 
+img = b[1]
+img = img.open()
+# print(img['mask'][()])
+kspace = img['kspace'][5, 10]
+
+plt.imshow(np.log(np.abs(kspace) + 1e-9))
+plt.show()
+
+
 mask_generator = KspaceMask(acceleration=4)
 mask = mask_generator.mask_linearly_spaced(lines=320, seed=42)
 
@@ -63,7 +72,7 @@ with open(path, 'r') as inifile:
     config = json.load(inifile)
 
 # optimizer = torch.optim.Optimizer(model.parameters(), config['optimizer'])
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-7)
 # lr_schedualer = torch.optim.Optimizer(optimizer, config['lr_scheduler'])
 
 

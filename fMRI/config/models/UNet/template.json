@@ -10,7 +10,7 @@
         "type": "FastMRI",
         "args":{
             "data_dir": "data/",
-            "batch_size": 128,
+            "batch_size": 8,
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 2
@@ -19,7 +19,7 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 0.001,
+            "lr": 1e-7,
             "weight_decay": 0,
             "amsgrad": true
         }

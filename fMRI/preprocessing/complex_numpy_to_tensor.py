@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-from fastmri.data import transforms as T
+from .fastmri import transforms as T
 
 class ComplexNumpyToTensor(object):
     """
