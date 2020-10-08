@@ -1,5 +1,12 @@
+from pathlib import Path
 import logging
-logging.basicConfig(filename='training.log')
+
+save_path = './docs/'
+
+Path(save_path).mkdir(parents=True, exist_ok=True)
+
+
+logging.basicConfig(filename=save_path + 'training.log')
 
 levels = {0: logging.NOTSET,
           1: logging.DEBUG,
@@ -16,6 +23,9 @@ def get_logger(name, level=2):
         raise ValueError('level must be {}, not {}'.format(levels.keys(), level))
 
     logger = logging.getLogger(name)
+    if (logger.hasHandlers()):
+        logger.handlers.clear()
+
     logger.addHandler(logging.StreamHandler())
     logger.setLevel(levels[level])
 

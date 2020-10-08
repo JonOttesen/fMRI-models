@@ -3,6 +3,7 @@ from collections import defaultdict
 
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 
 # from torchvision.utils import make_grid
 # from base import BaseTrainer
@@ -40,6 +41,7 @@ class Trainer(BaseTrainer):
 
         self.len_epoch = len(data_loader)
         self.log_step = 100
+        self.counter = 0
 
     def _train_epoch(self, epoch):
         """
@@ -94,7 +96,10 @@ class Trainer(BaseTrainer):
                 metrics['loss'].append(self.loss_function(output, target).item())
 
                 for key, metric in self.metric_ftns.items():
-                    metrics[key].append(metric(output, target).item())
+                    if self.metrics_is_dict:
+                        metrics[key].append(metric(output.cpu(), target.cpu()).item())
+                    else:
+                        metrics[key].append(metric(output, target).item())
 
         return metrics
 

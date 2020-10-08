@@ -137,3 +137,4 @@ dmypy.json
 *.h5
 testing
 fastMRI
+*test_files

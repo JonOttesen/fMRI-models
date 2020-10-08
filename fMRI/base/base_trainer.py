@@ -8,6 +8,7 @@ import torch
 import numpy as np
 
 from ..logger import get_logger
+from ..models import MultiLoss, MultiMetric
 from .metrics import MetricTracker
 
 
@@ -17,8 +18,8 @@ class BaseTrainer:
     """
     def __init__(self,
                  model: torch.nn.Module,
-                 loss_function: Callable,
-                 metric_ftns: Dict[str, Callable],
+                 loss_function: MultiLoss,
+                 metric_ftns: Union[MultiMetric, Dict[str, callable]],
                  optimizer: torch.optim,
                  config: dict,
                  lr_scheduler: torch.optim.lr_scheduler = None,
@@ -42,7 +43,13 @@ class BaseTrainer:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
         self.loss_function = loss_function.to(self.device)
-        self.metric_ftns = metric_ftns
+        if isinstance(metric_ftns, dict):  # dicts can't be sent to the gpu
+            self.metrics_is_dict = True
+            self.metric_ftns = metric_ftns
+        else:  # MetricTracker class can be sent to the gpu
+            self.metrics_is_dict = False
+            self.metric_ftns = metric_ftns.to(self.device)
+
         self.optimizer = optimizer
 
         trainer_cfg = config['trainer']

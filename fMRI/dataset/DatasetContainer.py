@@ -156,6 +156,8 @@ class DatasetContainer(object):
 
             self.add_entry(entry=entry)
 
+        self.add_shapes(keyword='kspace')
+
         return self
 
 
