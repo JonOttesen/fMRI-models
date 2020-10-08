@@ -33,13 +33,19 @@ from fMRI.models.reconstruction.losses import SSIM
 
 
 train = DatasetContainer()
-train.fastMRI(path='train_test_files/', datasetname='fastMRI', dataset_type='training')
+train.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_train', datasetname='fastMRI', dataset_type='training')
 
 valid = DatasetContainer()
-valid.fastMRI(path='valid_test_files/', datasetname='fastMRI', dataset_type='validation')
+valid.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val', datasetname='fastMRI', dataset_type='validation')
+
+test = DatasetContainer()
+test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
 
 train.to_json(path='./docs/train_files.json')
 valid.to_json(path='./docs/valid_files.json')
+test.to_json(path='./docs/valid_files.json')
+
+exit()
 
 """
 img = train[1]
