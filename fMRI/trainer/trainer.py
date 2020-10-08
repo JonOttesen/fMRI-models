@@ -60,6 +60,7 @@ class Trainer(BaseTrainer):
             output = self.model(data)
             loss = self.loss_function(output, target)
             loss.backward()
+
             self.optimizer.step()
             loss = loss.item()  # Detach loss from comp graph and moves it to the cpu
             losses['loss'].append(loss)

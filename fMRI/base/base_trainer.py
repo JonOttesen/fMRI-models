@@ -43,6 +43,7 @@ class BaseTrainer:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
         self.loss_function = loss_function.to(self.device)
+
         if isinstance(metric_ftns, dict):  # dicts can't be sent to the gpu
             self.metrics_is_dict = True
             self.metric_ftns = metric_ftns
@@ -55,7 +56,6 @@ class BaseTrainer:
         trainer_cfg = config['trainer']
         self.epochs = trainer_cfg['epochs']
         self.save_period = trainer_cfg['save_period']
-
 
         self.start_epoch = 1
 
@@ -135,6 +135,7 @@ class BaseTrainer:
             self.logger.warning("Warning: The number of GPU\'s configured to use is {}, but only {} are available "
                                 "on this machine.".format(n_gpu_use, n_gpu))
             n_gpu_use = n_gpu
+
         device = torch.device('cuda:0' if n_gpu_use > 0 else 'cpu')
         list_ids = list(range(n_gpu_use))
         return device, list_ids
