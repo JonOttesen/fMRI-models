@@ -7,6 +7,8 @@ from copy import deepcopy
 import numpy as np
 from copy import deepcopy
 
+from tqdm import tqdm
+
 from .DatasetEntry import DatasetEntry
 from .DatasetInfo import DatasetInfo
 
@@ -131,7 +133,7 @@ class DatasetContainer(object):
 
         self.add_info(info=info)
 
-        for file in files:
+        for file in tqdm(files):
             filename = file.name
 
             entry = DatasetEntry(
