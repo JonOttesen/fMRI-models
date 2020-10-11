@@ -58,7 +58,7 @@ class DatasetContainer(object):
         """
         Fetches the shapes of the images for each entry
         """
-        for entry in tqdm(self):
+        for entry in self:
             entry.add_shape(open_func=open_func, shape=shape, keyword=keyword)
 
     def shapes_given(self):

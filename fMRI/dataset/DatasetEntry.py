@@ -52,7 +52,7 @@ class DatasetEntry(object):
         return self.__str__()
 
     def open(self, open_func=None):
-
+        print(self.image_path)
         if open_func is not None:
             image = open_func(self.image_path)
         else:
