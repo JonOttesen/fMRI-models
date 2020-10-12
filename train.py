@@ -43,7 +43,7 @@ test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test'
 
 train.to_json(path='./docs/train_files.json')
 valid.to_json(path='./docs/valid_files.json')
-test.to_json(path='./docs/valid_files.json')
+test.to_json(path='./docs/test_files.json')
 
 exit()
 
