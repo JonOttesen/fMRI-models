@@ -25,8 +25,8 @@ class ApplyMaskColumn(object):
             torch.Tensor: K-space tensor with same shape and applied mask
 
         """
-
-        tensor[:, :, self.mask != True] = 0
+        mask = self.mask(tensor.shape[-2])
+        tensor[:, :, mask != True] = 0
         return tensor
 
     def __repr__(self):

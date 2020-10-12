@@ -2,6 +2,7 @@ from typing import Union
 import h5py
 
 from pathlib import Path
+from ..logger import get_logger
 
 
 class DatasetEntry(object):
@@ -17,11 +18,13 @@ class DatasetEntry(object):
                  multicoil: bool = None,
                  shape: tuple = None):
 
+        self.logger = get_logger(name=__name__)
+
         if isinstance(image_path, (Path, str)):
             self.image_path = str(image_path)
             if not Path(image_path).is_file():
-                print('The path: ', str(image_path))
-                print('Is not an existing file, are you sure this is the correct path?')
+                self.logger.info('The path: ' + str(image_path))
+                self.logger.info('Is not an existing file, are you sure this is the correct path?')
         else:
             self.image_path = image_path
 
@@ -52,7 +55,6 @@ class DatasetEntry(object):
         return self.__str__()
 
     def open(self, open_func=None):
-        print(self.image_path)
         if open_func is not None:
             image = open_func(self.image_path)
         else:

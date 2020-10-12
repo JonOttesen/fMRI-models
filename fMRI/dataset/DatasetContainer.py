@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from .DatasetEntry import DatasetEntry
 from .DatasetInfo import DatasetInfo
+from ..logger import get_logger
 
 
 class DatasetContainer(object):
@@ -19,6 +20,7 @@ class DatasetContainer(object):
                  info: List[DatasetInfo] = None,
                  entries: List[DatasetEntry] = None):
 
+        self.logger = get_logger(name=__name__)
         self.info = info if info is not None else list()
         self.entries = entries if entries is not None else list()
 
@@ -58,7 +60,7 @@ class DatasetContainer(object):
         """
         Fetches the shapes of the images for each entry
         """
-        for entry in self:
+        for entry in tqdm(self):
             entry.add_shape(open_func=open_func, shape=shape, keyword=keyword)
 
     def shapes_given(self):
@@ -135,6 +137,9 @@ class DatasetContainer(object):
 
         for file in tqdm(files):
             filename = file.name
+            # Skip broken file, not ideal
+            if 'file_brain_AXT2_208_2080355' in filename:
+                continue
 
             entry = DatasetEntry(
                 image_path=file,
