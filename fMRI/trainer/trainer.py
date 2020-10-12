@@ -40,7 +40,7 @@ class Trainer(BaseTrainer):
         self.valid_data_loader = valid_data_loader
 
         self.len_epoch = len(data_loader)
-        self.log_step = 100
+        self.log_step = int(self.len_epoch/4)
         self.counter = 0
 
     def _train_epoch(self, epoch):
@@ -66,7 +66,7 @@ class Trainer(BaseTrainer):
             losses['loss'].append(loss)
 
             if batch_idx % self.log_step == 0:
-                self.logger.debug('Train Epoch: {} {} Loss: {:.6f}'.format(
+                self.logger.info('Train Epoch: {} {} Loss: {:.6f}'.format(
                     epoch,
                     self._progress(batch_idx),
                     loss))

@@ -87,6 +87,9 @@ class BaseTrainer:
         """
         Full training logic
         """
+        # Path where metrics are saved
+        statics_save_path = str(self.checkpoint_dir) + 'statistics.json'
+
         for epoch in range(self.start_epoch, self.epochs + 1):
             epoch_start_time = time.time()
             loss_dict = self._train_epoch(epoch)
@@ -116,9 +119,10 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self.save_checkpoint(epoch)
+                self.metric.write_to_file(path=statics_save_path)  # Save for every checkpoint in case of crash
 
-        save_path = str(self.checkpoint_dir) + 'statistics.json'
-        self.metric.write_to_file(path=save_path)
+        self.metric.write_to_file(path=statics_save_path)  # Save metrics at the end
+
 
     def prepare_device(self, n_gpu_use: int):
         """

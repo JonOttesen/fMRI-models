@@ -26,26 +26,28 @@ from fMRI.preprocessing import (
     ApplyMaskColumn,
     KspaceToImage,
     ComplexNumpyToTensor,
-    CropImage
+    CropImage,
+    ZNormalization,
     )
 
 from fMRI.models.reconstruction.losses import SSIM
 
 
+# train = DatasetContainer()
+# train.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_train', datasetname='fastMRI', dataset_type='training')
+
+# valid = DatasetContainer()
+# valid.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val', datasetname='fastMRI', dataset_type='validation')
+
+# test = DatasetContainer()
+# test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
+
+# train = DatasetContainer.from_json(path='./docs/train_files.json')
+# valid = DatasetContainer.from_json(path='./docs/valid_files.json')
+# test = DatasetContainer.from_json(path='./docs/test_files.json')
+
 train = DatasetContainer()
-train.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_train', datasetname='fastMRI', dataset_type='training')
-
-valid = DatasetContainer()
-valid.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val', datasetname='fastMRI', dataset_type='validation')
-
-test = DatasetContainer()
-test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
-
-train.to_json(path='./docs/train_files.json')
-valid.to_json(path='./docs/valid_files.json')
-test.to_json(path='./docs/test_files.json')
-
-exit()
+train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
 
 """
 img = train[1]
@@ -57,19 +59,22 @@ plt.imshow(np.log(np.abs(kspace) + 1e-9))
 plt.show()
 """
 
-mask_generator = KspaceMask(acceleration=4)
-mask = mask_generator.mask_linearly_spaced(lines=320, seed=42)
+mask = KspaceMask(acceleration=4, seed=42)
 
 train_transforms = torchvision.transforms.Compose([
     ComplexNumpyToTensor(),
-    # ApplyMaskColumn(mask=mask),
+    ApplyMaskColumn(mask=mask),
     KspaceToImage(complex_absolute=True, coil_rss=True),
-    CropImage(size=(320, 320))])
+    CropImage(size=(320, 320)),
+    ZNormalization(dim=0),
+    ])
 
 truth_transforms = torchvision.transforms.Compose([
     ComplexNumpyToTensor(),
     KspaceToImage(complex_absolute=True, coil_rss=True),
-    CropImage()])
+    CropImage(size=(320, 320)),
+    ZNormalization(dim=0),
+    ])
 
 
 training_loader = DatasetLoader(
@@ -79,7 +84,7 @@ training_loader = DatasetLoader(
     )
 
 validation_loader = DatasetLoader(
-    datasetcontainer=valid,
+    datasetcontainer=train,
     train_transforms=train_transforms,
     truth_transforms=truth_transforms
     )
@@ -88,17 +93,25 @@ validation_loader = DatasetLoader(
 loss = [(1, torch.nn.L1Loss()), (1, SSIM())]
 loss = MultiLoss(losses=loss)
 
-train_loader = torch.utils.data.DataLoader(dataset=training_loader, num_workers=1, batch_size=2, shuffle=False)
-valid_loader = torch.utils.data.DataLoader(dataset=validation_loader, num_workers=1, batch_size=2, shuffle=False)
 
 metrics = {'SSIM': SSIM(), 'MSE': torch.nn.MSELoss(), 'L1': torch.nn.L1Loss()}
 metrics = MultiMetric(metrics=metrics)
 
-path = 'fMRI/config/models/UNet/template.json'
+path = './fMRI/config/models/UNet/template.json'
 
 model = UNet(n_channels=1, n_classes=1)
 
 config = ConfigReader(config=path)
+
+train_loader = torch.utils.data.DataLoader(dataset=training_loader,
+                                           num_workers=config.num_workers,
+                                           batch_size=config.batch_size,
+                                           shuffle=config.shuffle)
+
+valid_loader = torch.utils.data.DataLoader(dataset=validation_loader,
+                                           num_workers=config.num_workers,
+                                           batch_size=config.batch_size,
+                                           shuffle=config.shuffle)
 
 optimizer = config.optimizer(model_params=model.parameters())
 lr_scheduler = config.lr_scheduler(optimizer=optimizer)
@@ -111,7 +124,7 @@ trainer = Trainer(
     optimizer=optimizer,
     config=config.configs(),
     data_loader=train_loader,
-    valid_data_loader=train_loader,
+    valid_data_loader=valid_loader,
     lr_scheduler=lr_scheduler,
     seed=42
     )

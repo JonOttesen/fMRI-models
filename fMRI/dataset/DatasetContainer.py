@@ -70,6 +70,12 @@ class DatasetContainer(object):
             else:
                 return True
 
+    def shapes(self):
+        return list(set([tuple(entry['shape']) for entry in self]))
+
+    def sequences(self):
+        return list(set([entry['sequence_type'] for entry in self]))
+
     def keys(self):
         return self.to_dict().keys()
 

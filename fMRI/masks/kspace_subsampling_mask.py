@@ -62,7 +62,7 @@ class KspaceMask:
         # Using setter to ensure correct string type
         assert value in self.MASK_TYPES, 'mask_type {} not in MASK_TYPES {}'.format(value, self.MASK_TYPES)
 
-    def mask(self, lines: int):
+    def __call__(self, lines: int):
         """
         Wrapper for the mask generator calling either:
         _mask_random_uniform or _mask_linearly_spaced depending on the mask type

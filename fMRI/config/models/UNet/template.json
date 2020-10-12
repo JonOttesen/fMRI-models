@@ -10,7 +10,7 @@
         "type": "FastMRI",
         "args":{
             "data_dir": "data/",
-            "batch_size": 8,
+            "batch_size": 16,
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 2
@@ -39,7 +39,7 @@
         "epochs": 20,
 
         "save_dir": "/home/jon/Documents/CRAI/saved/",
-        "save_period": 1000,
+        "save_period": 5,
         "verbosity": 2,
         "monitor": "min val_loss",
         "early_stop": 10,

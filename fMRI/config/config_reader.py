@@ -26,6 +26,18 @@ class ConfigReader(object):
     def __str__(self):
         return self.config
 
+    @property
+    def shuffle(self):
+        return self['data_loader']['args']['shuffle']
+
+    @property
+    def batch_size(self):
+        return self['data_loader']['args']['batch_size']
+
+    @property
+    def num_workers(self):
+        return self['data_loader']['args']['num_workers']
+
     def optimizer(self, model_params):
         optim = self.config['optimizer']
         optimizer = getattr(torch.optim, optim['type'])
