@@ -138,7 +138,7 @@ class DatasetContainer(object):
         for file in tqdm(files):
             filename = file.name
             # Skip broken file, not ideal
-            if 'file_brain_AXT2_208_2080355' in filename:
+            if 'file_brain_AXT2_208_2080355' in filename or 'file_brain_AXFLAIR_200_6002544' in filename:
                 continue
 
             entry = DatasetEntry(
