@@ -10,7 +10,7 @@
         "type": "FastMRI",
         "args":{
             "data_dir": "./docs",
-            "batch_size": 12,
+            "batch_size": 2,
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 2
