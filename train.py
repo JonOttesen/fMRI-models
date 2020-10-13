@@ -86,14 +86,14 @@ truth_transforms = torchvision.transforms.Compose([
 
 training_loader = DatasetLoader(
     datasetcontainer=train,
-    train_transforms=train_transforms,
-    truth_transforms=truth_transforms
+    # train_transforms=train_transforms,
+    # truth_transforms=truth_transforms
     )
 
 validation_loader = DatasetLoader(
     datasetcontainer=valid,
-    train_transforms=train_transforms,
-    truth_transforms=truth_transforms
+    # train_transforms=train_transforms,
+    # truth_transforms=truth_transforms
     )
 
 
