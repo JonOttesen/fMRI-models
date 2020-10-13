@@ -1,7 +1,10 @@
+import time
+
 from typing import List, Callable, Union, Dict
 from abc import abstractmethod
 from pathlib import Path
-import time
+from datetime import datetime
+
 # from logger import TensorboardWriter
 
 import torch
@@ -59,7 +62,7 @@ class BaseTrainer:
 
         self.start_epoch = 1
 
-        self.checkpoint_dir = trainer_cfg['save_dir']
+        self.checkpoint_dir = Path(trainer_cfg['save_dir']) / Path(datetime.today().strftime('%Y-%m-%d'))
         self.metric = MetricTracker(config=config)
 
         # setup visualization writer instance
@@ -88,7 +91,7 @@ class BaseTrainer:
         Full training logic
         """
         # Path where metrics are saved
-        statics_save_path = str(self.checkpoint_dir) + 'statistics.json'
+        statics_save_path = self.checkpoint_dir / Path('statistics.json')
 
         for epoch in range(self.start_epoch, self.epochs + 1):
             epoch_start_time = time.time()

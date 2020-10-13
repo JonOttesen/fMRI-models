@@ -25,6 +25,7 @@ from fMRI.preprocessing import (
     Normalization,
     ApplyMaskColumn,
     KspaceToImage,
+    PadKspace,
     ComplexNumpyToTensor,
     CropImage,
     ZNormalization,
@@ -42,26 +43,31 @@ from fMRI.models.reconstruction.losses import SSIM
 # test = DatasetContainer()
 # test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
 
-# train = DatasetContainer.from_json(path='./docs/train_files.json')
-# valid = DatasetContainer.from_json(path='./docs/valid_files.json')
-# test = DatasetContainer.from_json(path='./docs/test_files.json')
+train = DatasetContainer.from_json(path='./docs/train_files.json')
+valid = DatasetContainer.from_json(path='./docs/valid_files.json')
+test = DatasetContainer.from_json(path='./docs/test_files.json')
 
-train = DatasetContainer()
-train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
+# train = DatasetContainer()
+# train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
 
 """
-img = train[1]
-img = img.open()
+padder = PadKspace((320, 320))
+for img in train:
+# img = train[1]
+    img = img.open()
 # print(img['mask'][()])
-kspace = img['kspace'][5, 10]
+    kspace = img['kspace'][0]
+    kspace = padder(kspace)
 
-plt.imshow(np.log(np.abs(kspace) + 1e-9))
-plt.show()
+    plt.imshow(np.log(np.abs(kspace[2]) + 1e-9))
+    plt.show()
+
 """
 
 mask = KspaceMask(acceleration=4, seed=42)
 
 train_transforms = torchvision.transforms.Compose([
+    PadKspace(shape=(320, 320)),
     ComplexNumpyToTensor(),
     ApplyMaskColumn(mask=mask),
     KspaceToImage(complex_absolute=True, coil_rss=True),
@@ -70,6 +76,7 @@ train_transforms = torchvision.transforms.Compose([
     ])
 
 truth_transforms = torchvision.transforms.Compose([
+    PadKspace(shape=(320, 320)),
     ComplexNumpyToTensor(),
     KspaceToImage(complex_absolute=True, coil_rss=True),
     CropImage(size=(320, 320)),
@@ -84,7 +91,7 @@ training_loader = DatasetLoader(
     )
 
 validation_loader = DatasetLoader(
-    datasetcontainer=train,
+    datasetcontainer=valid,
     train_transforms=train_transforms,
     truth_transforms=truth_transforms
     )
@@ -111,7 +118,7 @@ train_loader = torch.utils.data.DataLoader(dataset=training_loader,
 valid_loader = torch.utils.data.DataLoader(dataset=validation_loader,
                                            num_workers=config.num_workers,
                                            batch_size=config.batch_size,
-                                           shuffle=config.shuffle)
+                                           shuffle=False)
 
 optimizer = config.optimizer(model_params=model.parameters())
 lr_scheduler = config.lr_scheduler(optimizer=optimizer)
