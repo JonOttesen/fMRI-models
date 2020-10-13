@@ -89,11 +89,25 @@ training_loader = DatasetLoader(
     # train_transforms=train_transforms,
     # truth_transforms=truth_transforms
     )
+start_time = time.time()
+for i in training_loader:
+    pass
+print(time.time() - start_time)
+
+training_loader = DatasetLoader(
+    datasetcontainer=train,
+    train_transforms=train_transforms,
+    truth_transforms=truth_transforms
+    )
+start_time = time.time()
+for i in training_loader:
+    pass
+print(time.time() - start_time)
 
 validation_loader = DatasetLoader(
     datasetcontainer=valid,
-    # train_transforms=train_transforms,
-    # truth_transforms=truth_transforms
+    train_transforms=train_transforms,
+    truth_transforms=truth_transforms
     )
 
 
