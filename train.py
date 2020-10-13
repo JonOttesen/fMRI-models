@@ -3,6 +3,8 @@ import json
 
 import time
 
+from tqdm import tqdm
+
 from pathlib import Path
 
 import torch
@@ -90,7 +92,7 @@ training_loader = DatasetLoader(
     # truth_transforms=truth_transforms
     )
 start_time = time.time()
-for i in training_loader:
+for i in tqdm(training_loader):
     pass
 print(time.time() - start_time)
 
@@ -100,10 +102,10 @@ training_loader = DatasetLoader(
     truth_transforms=truth_transforms
     )
 start_time = time.time()
-for i in training_loader:
+for i in tqdm(training_loader):
     pass
 print(time.time() - start_time)
-
+exit()
 validation_loader = DatasetLoader(
     datasetcontainer=valid,
     train_transforms=train_transforms,
