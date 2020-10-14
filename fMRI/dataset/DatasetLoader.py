@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import torch
 import torchvision
+import numpy as np
 
 from .DatasetContainer import DatasetContainer
 from .DatasetEntry import DatasetEntry
@@ -90,15 +91,16 @@ class DatasetLoader(torch.utils.data.Dataset):
             image = image_object.get_fdata()[image_index]
 
         # For reconstruction where the train image is masked and thus have a different transform
+        a = deepcopy(image)
         if self.train_transforms is not None:
             train = self.train_transforms(image)
         else:
-            train = deepcopy(image)
+            train = image
 
         if self.truth_transforms is not None:
             valid = self.truth_transforms(image)
         else:
-            valid = deepcopy(image)
+            valid = np.copy(image)
 
         return train, valid
 

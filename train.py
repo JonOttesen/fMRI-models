@@ -45,26 +45,13 @@ from fMRI.models.reconstruction.losses import SSIM
 # test = DatasetContainer()
 # test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
 
-train = DatasetContainer.from_json(path='./docs/train_files.json')
-valid = DatasetContainer.from_json(path='./docs/valid_files.json')
-test = DatasetContainer.from_json(path='./docs/test_files.json')
+# train = DatasetContainer.from_json(path='./docs/train_files.json')
+# valid = DatasetContainer.from_json(path='./docs/valid_files.json')
+# test = DatasetContainer.from_json(path='./docs/test_files.json')
 
-# train = DatasetContainer()
-# train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
+train = DatasetContainer()
+train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
 
-"""
-padder = PadKspace((320, 320))
-for img in train:
-# img = train[1]
-    img = img.open()
-# print(img['mask'][()])
-    kspace = img['kspace'][0]
-    kspace = padder(kspace)
-
-    plt.imshow(np.log(np.abs(kspace[2]) + 1e-9))
-    plt.show()
-
-"""
 
 mask = KspaceMask(acceleration=4, seed=42)
 
@@ -88,24 +75,10 @@ truth_transforms = torchvision.transforms.Compose([
 
 training_loader = DatasetLoader(
     datasetcontainer=train,
-    # train_transforms=train_transforms,
-    # truth_transforms=truth_transforms
-    )
-start_time = time.time()
-for i in tqdm(training_loader):
-    pass
-print(time.time() - start_time)
-
-training_loader = DatasetLoader(
-    datasetcontainer=train,
     train_transforms=train_transforms,
     truth_transforms=truth_transforms
     )
-start_time = time.time()
-for i in tqdm(training_loader):
-    pass
-print(time.time() - start_time)
-exit()
+
 validation_loader = DatasetLoader(
     datasetcontainer=valid,
     train_transforms=train_transforms,

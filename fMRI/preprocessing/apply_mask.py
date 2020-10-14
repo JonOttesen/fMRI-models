@@ -25,7 +25,7 @@ class ApplyMaskColumn(object):
             torch.Tensor: K-space tensor with same shape and applied mask
 
         """
-        mask = self.mask(tensor.shape[-2])
+        mask = self.mask(tensor.shape[-2] if len(tensor.shape) == 4 else tensor.shape[-1])
         tensor[:, :, mask != True] = 0
         return tensor
 

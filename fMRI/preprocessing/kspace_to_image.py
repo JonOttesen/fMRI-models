@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 from .fastmri import math
 from .fastmri.coil_combine import rss
@@ -32,7 +33,8 @@ class KspaceToImage(object):
                           if the complex_absolute is not calculated
 
         """
-
+        if isinstance(tensor, np.ndarray):
+            return numpy_fft(tensor)
         a = math.ifft2c(tensor)
         if self.complex_absolute:
             b = math.complex_abs(a)
@@ -46,3 +48,9 @@ class KspaceToImage(object):
 
     def __repr__(self):
         return self.__class__.__name__ + '(complex_absolute={0})'.format(self.complex_absolute)
+
+
+def numpy_fft(tensor):
+    a = np.fft.ifft2(tensor)
+    b = np.absolute(a)
+    return np.linalg.norm(b, axis=0, keepdims=True)
