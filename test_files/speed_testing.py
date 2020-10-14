@@ -4,6 +4,9 @@ import json
 import time
 
 import logging
+import h5py
+import blosc
+import base64
 
 from tqdm import tqdm
 
@@ -37,26 +40,27 @@ from fMRI.preprocessing import (
 
 from fMRI.models.reconstruction.losses import SSIM
 
-# train = DatasetContainer()
-# train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
+train = DatasetContainer()
+train.fastMRI(path='/home/jona/Documents/CRAI/Compressed_testing', datasetname='fastMRI', dataset_type='training')
 
-train = DatasetContainer.from_json(path='./docs/train_files.json')
-print(train)
+# train = DatasetContainer.from_json(path='./docs/train_files.json')
+
+
+img = train[0]
+img = img.open()
+kspace = img['kspace']
+
+
+hf = h5py.File('compression_test.h5')
+hf.create_dataset('kspace', data=kspace, compression='blosc', compression_opts=9)
+
+hf.close()
+
 exit()
 
-"""
-padder = PadKspace((320, 320))
-for img in train:
-# img = train[1]
-    img = img.open()
-# print(img['mask'][()])
-    kspace = img['kspace'][0]
-    kspace = padder(kspace)
 
-    plt.imshow(np.log(np.abs(kspace[2]) + 1e-9))
-    plt.show()
 
-"""
+
 
 mask = KspaceMask(acceleration=4, seed=42)
 
@@ -88,14 +92,16 @@ training_loader = DatasetLoader(
 
 train_loader = torch.utils.data.DataLoader(dataset=training_loader,
                                            num_workers=4,
-                                           batch_size=1,
+                                           batch_size=4,
                                            shuffle=False)
 
 test_size = 500
 print('Start time check')
 start_time = time.time()
-for i, j in enumerate(train_loader):
-    if i >= 500:
+counter = 0
+for j in train_loader:
+    counter += 1
+    if counter >= test_size:
         break
 
 print('DataLoader file loading time W PP: {}'.format(time.time() - start_time))
@@ -109,14 +115,16 @@ training_loader = DatasetLoader(
 
 train_loader = torch.utils.data.DataLoader(dataset=training_loader,
                                            num_workers=4,
-                                           batch_size=1,
+                                           batch_size=4,
                                            shuffle=False)
 
 test_size = 500
 print('Start time check')
 start_time = time.time()
-for i, j in enumerate(train_loader):
-    if i >= 500:
+counter = 0
+for j in train_loader:
+    counter += 1
+    if counter >= test_size:
         break
 
 print('DataLoader file loading time WO PP: {}'.format(time.time() - start_time))
