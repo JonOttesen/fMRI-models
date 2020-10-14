@@ -10,7 +10,7 @@
         "type": "FastMRI",
         "args":{
             "data_dir": "./docs",
-            "batch_size": 12,
+            "batch_size": 1,
             "shuffle": true,
             "validation_split": 0.1,
             "num_workers": 2
@@ -31,19 +31,19 @@
     "lr_scheduler": {
         "type": "StepLR",
         "args": {
-            "step_size": 50,
+            "step_size": 500,
             "gamma": 0.1
         }
     },
     "trainer": {
         "epochs": 20,
-
-        "save_dir": "/mnt/CRAI-NAS/all/jona/fMRI/UNet",
+        "iterative": false,
+        "iterations": 50,
+        "images_pr_iteration": 20,
+        "val_images_pr_iteration": 10,
+        "save_dir": "/home/jon/Documents/CRAI/saved",
         "save_period": 5,
-        "verbosity": 2,
-        "monitor": "min val_loss",
-        "early_stop": 10,
-        "tensorboard": true
+        "early_stop": 10
 
     }
 }

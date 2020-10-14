@@ -14,11 +14,10 @@ class ConfigReader(object):
         if isinstance(config, dict):
             self.config = config
         else:
-            try:
-                with open(config, 'r') as inifile:
-                    self.config = json.load(inifile)
-            except:
+            if not isinstance(config, (str, Path)):
                 raise TypeError('Input must be of type dict or str/pathlib.Path not {}'.format(type(config)))
+            with open(config, 'r') as inifile:
+                self.config = json.load(inifile)
 
     def __getitem__(self, key):
         return self.config[key]

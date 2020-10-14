@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 from ..base import BaseTrainer
 from ..config import ConfigReader
+from ..models import MultiMetric, MultiLoss
 
 
 class Trainer(BaseTrainer):
@@ -19,8 +20,8 @@ class Trainer(BaseTrainer):
     """
     def __init__(self,
                  model: torch.nn.Module,
-                 loss_function: Callable,
-                 metric_ftns: Dict[str, Callable],
+                 loss_function: Union[MultiLoss, Callable],
+                 metric_ftns: Union[MultiMetric, Dict[str, Callable]],
                  optimizer: torch.optim,
                  config: dict,
                  data_loader: torch.utils.data.dataloader,
@@ -39,9 +40,12 @@ class Trainer(BaseTrainer):
         self.data_loader = data_loader
         self.valid_data_loader = valid_data_loader
 
-        self.len_epoch = len(data_loader)
+        self.images_pr_iteration = int(config['trainer']['images_pr_iteration'])
+        self.val_images_pr_iteration = int(config['trainer']['val_images_pr_iteration'])
+
+        self.len_epoch = len(data_loader) if not self.iterative else self.images_pr_iteration
         self.log_step = int(self.len_epoch/4)
-        self.counter = 0
+        self.batch_size = data_loader.batch_size
 
     def _train_epoch(self, epoch):
         """
@@ -55,8 +59,7 @@ class Trainer(BaseTrainer):
 
         for batch_idx, (data, target) in enumerate(self.data_loader):
             data, target = data.to(self.device), target.to(self.device)
-            print(batch_idx)
-            continue
+
             self.optimizer.zero_grad()
 
             output = self.model(data)
@@ -68,12 +71,13 @@ class Trainer(BaseTrainer):
             losses['loss'].append(loss)
 
             if batch_idx % self.log_step == 0:
-                self.logger.info('Train Epoch: {} {} Loss: {:.6f}'.format(
+                self.logger.info('Train {}: {} {} Loss: {:.6f}'.format(
+                    'Epoch' if not self.iterative else 'Iteration',
                     epoch,
                     self._progress(batch_idx),
-                    loss.detach()))
+                    loss))
 
-            if batch_idx == self.len_epoch:
+            if batch_idx*self.batch_size >= self.images_pr_iteration and self.iterative:
                 break
 
         return losses
@@ -104,7 +108,27 @@ class Trainer(BaseTrainer):
                     else:
                         metrics[key].append(metric(output, target).item())
 
+                if batch_idx*self.batch_size >= self.val_images_pr_iteration and self.iterative:
+                    break
+
         return metrics
+
+    def _train_iteration(self, iteration):
+        """
+        Training logic after an iteration, for large datasets
+
+        :param epoch: Integer, current training epoch.
+        :return: A log that contains average loss and metric in this epoch.
+        """
+        return self._train_epoch(epoch=iteration)
+
+    def _valid_iteration(self, iteration):
+        """
+        Validation logic after an iteration, for large datasets
+
+        :param epoch: Current iteration number
+        """
+        return self._valid_epoch(epoch=iteration)
 
     def _progress(self, batch_idx):
         base = '[{}/{} ({:.0f}%)]'

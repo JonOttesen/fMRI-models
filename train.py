@@ -34,7 +34,7 @@ from fMRI.preprocessing import (
     )
 
 from fMRI.models.reconstruction.losses import SSIM
-
+# "save_dir": "/mnt/CRAI-NAS/all/jona/fMRI/UNet",
 
 # train = DatasetContainer()
 # train.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_train', datasetname='fastMRI', dataset_type='training')
@@ -80,7 +80,7 @@ training_loader = DatasetLoader(
     )
 
 validation_loader = DatasetLoader(
-    datasetcontainer=valid,
+    datasetcontainer=train,
     train_transforms=train_transforms,
     truth_transforms=truth_transforms
     )

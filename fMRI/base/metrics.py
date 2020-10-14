@@ -30,6 +30,7 @@ class MetricTracker(object):
         self.results[self.TRAINING_KEY] = dict()
         self.results[self.VALIDATION_KEY] = dict()
         self.results[self.CONFIG_KEY] = config
+        self.iterative = bool(config['trainer']['iterative'])
 
     def resume(self, resume_path: Union[str, Path]):
         """
@@ -72,7 +73,9 @@ class MetricTracker(object):
                          previous history
         """
 
-        epoch = 'epoch_' + str(epoch)
+        epoch = '{}_{}'.format(
+            'epoch' if not self.iterative else 'iteration',
+            epoch)
         self.results[self.TRAINING_KEY][epoch] = loss
 
     def validation_update(self,
@@ -86,7 +89,9 @@ class MetricTracker(object):
                          previous history
         """
 
-        epoch = 'epoch_' + str(epoch)
+        epoch = '{}_{}'.format(
+            'epoch' if not self.iterative else 'iteration',
+            epoch)
         self.results[self.VALIDATION_KEY][epoch] = metrics
 
     def training_metric(self, epoch):

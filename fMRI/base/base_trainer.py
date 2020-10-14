@@ -60,6 +60,9 @@ class BaseTrainer:
         self.epochs = trainer_cfg['epochs']
         self.save_period = trainer_cfg['save_period']
 
+        self.iterative = bool(trainer_cfg['iterative'])
+        self.iterations = int(trainer_cfg['iterations'])
+
         self.start_epoch = 1
 
         self.checkpoint_dir = Path(trainer_cfg['save_dir']) / Path(datetime.today().strftime('%Y-%m-%d'))
@@ -83,6 +86,24 @@ class BaseTrainer:
         Validation logic after an epoch
 
         :param epoch: Current epoch number
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _train_iteration(self, epoch):
+        """
+        Training logic after an iteration, for large datasets
+
+        :param epoch: Current iteration number
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _valid_iteration(self, epoch):
+        """
+        Validation logic after an iteration, for large datasets
+
+        :param epoch: Current iteration number
         """
         raise NotImplementedError
 
