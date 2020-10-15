@@ -37,7 +37,7 @@
     },
     "trainer": {
         "epochs": 20,
-        "iterative": false,
+        "iterative": true,
         "iterations": 50,
         "images_pr_iteration": 4000,
         "val_images_pr_iteration": 1000,
