@@ -34,6 +34,7 @@ from fMRI.preprocessing import (
     )
 
 from fMRI.models.reconstruction.losses import SSIM
+
 # "save_dir": "/mnt/CRAI-NAS/all/jona/fMRI/UNet",
 
 # train = DatasetContainer()
@@ -45,12 +46,12 @@ from fMRI.models.reconstruction.losses import SSIM
 # test = DatasetContainer()
 # test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
 
-# train = DatasetContainer.from_json(path='./docs/train_files.json')
-# valid = DatasetContainer.from_json(path='./docs/valid_files.json')
+train = DatasetContainer.from_json(path='./docs/train_files.json')
+valid = DatasetContainer.from_json(path='./docs/valid_files.json')
 # test = DatasetContainer.from_json(path='./docs/test_files.json')
 
-train = DatasetContainer()
-train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
+# train = DatasetContainer()
+# train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
 
 
 mask = KspaceMask(acceleration=4, seed=42)
@@ -80,7 +81,7 @@ training_loader = DatasetLoader(
     )
 
 validation_loader = DatasetLoader(
-    datasetcontainer=train,
+    datasetcontainer=valid,
     train_transforms=train_transforms,
     truth_transforms=truth_transforms
     )
@@ -104,10 +105,11 @@ train_loader = torch.utils.data.DataLoader(dataset=training_loader,
                                            batch_size=config.batch_size,
                                            shuffle=config.shuffle)
 
+
 valid_loader = torch.utils.data.DataLoader(dataset=validation_loader,
                                            num_workers=config.num_workers,
                                            batch_size=config.batch_size,
-                                           shuffle=False)
+                                           shuffle=config.shuffle)
 
 optimizer = config.optimizer(model_params=model.parameters())
 lr_scheduler = config.lr_scheduler(optimizer=optimizer)
