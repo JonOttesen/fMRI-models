@@ -48,8 +48,8 @@ class DatasetLoader(torch.utils.data.Dataset):
 
                 # Could not fetch shapes, raise error
                 if not datasetcontainer.shapes_given():
-                    self.logger.warning('Could not fetch shapes,\
-                        insert manually, aborting program.')
+                    self.logger.warning('Could not fetch shapes, '\
+                        'insert manually, aborting program.')
                     raise AttributeError
 
                 self.logger.info('All shapes fetched from files, will continue.')
@@ -66,6 +66,8 @@ class DatasetLoader(torch.utils.data.Dataset):
                     counter += 1
             self.logger.info('--------------------------------------------------------------')
         else:
+            self.logger.info('Pytorch datasetloader compatibility disabled.\n'\
+                'The outputs are therefore (batch, C, H, W)')
             self._index_to_file_and_image = None
 
     def __len__(self):
@@ -91,7 +93,6 @@ class DatasetLoader(torch.utils.data.Dataset):
             image = image_object.get_fdata()[image_index]
 
         # For reconstruction where the train image is masked and thus have a different transform
-        a = deepcopy(image)
         if self.train_transforms is not None:
             train = self.train_transforms(image)
         else:

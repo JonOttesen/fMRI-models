@@ -32,7 +32,9 @@ class SSIM(nn.Module):
         self.sigma = sigma
         self.k1 = k1
         self.k2 = k2
-        self.gaussian_window = torch.nn.Parameter(gaussian_window(size=self.size, sigma=self.sigma, channels=channels))
+        self.gaussian_window = torch.nn.Parameter(gaussian_window(size=self.size,
+                                                                  sigma=self.sigma,
+                                                                  channels=channels))
 
     def apply_conv2d(self, X: torch.Tensor, pad: int = 0):
         channels = X.shape[1]

@@ -1,17 +1,6 @@
-import sys
-import json
-
-import time
-
-from tqdm import tqdm
-
-from pathlib import Path
-
 import torch
-import numpy as np
 
 import torchvision
-import matplotlib.pyplot as plt
 
 from fMRI import DatasetContainer
 from fMRI import DatasetLoader
@@ -125,6 +114,11 @@ trainer = Trainer(
     valid_data_loader=valid_loader,
     lr_scheduler=lr_scheduler,
     seed=42
+    )
+
+trainer.resume_checkpoint(
+    resume_model=
+    resume_metric=,
     )
 
 trainer.train()

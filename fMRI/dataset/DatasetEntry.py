@@ -1,5 +1,6 @@
 from typing import Union
 import h5py
+import nibabel as nib
 
 from pathlib import Path
 from ..logger import get_logger
@@ -70,7 +71,7 @@ class DatasetEntry(object):
         return h5py.File(image_path, 'r')
 
     def open_nifti(self, image_path):
-        return NotImplementedError
+        return nib.load(image_path).get_fdata()
 
     def add_shape(self, open_func=None, shape=None, keyword='kspace'):
         if isinstance(shape, tuple):

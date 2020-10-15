@@ -68,9 +68,6 @@ class BaseTrainer:
         self.checkpoint_dir = Path(trainer_cfg['save_dir']) / Path(datetime.today().strftime('%Y-%m-%d'))
         self.metric = MetricTracker(config=config)
 
-        # setup visualization writer instance
-        # self.writer = TensorboardWriter(config.log_dir, self.logger, trainer_cfg['tensorboard'])
-
     @abstractmethod
     def _train_epoch(self, epoch):
         """
@@ -112,7 +109,6 @@ class BaseTrainer:
         Full training logic
         """
         # Path where metrics are saved
-        statics_save_path = self.checkpoint_dir / Path('statistics.json')
 
         for epoch in range(self.start_epoch, self.epochs + 1):
             epoch_start_time = time.time()
@@ -143,7 +139,7 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self.save_checkpoint(epoch)
-                self.metric.write_to_file(path=statics_save_path)  # Save for every checkpoint in case of crash
+
             self.logger.info('-----------------------------------')
         self.metric.write_to_file(path=statics_save_path)  # Save metrics at the end
 
@@ -191,30 +187,36 @@ class BaseTrainer:
 
         save_path = Path(self.checkpoint_dir) / Path('epoch_' + str(epoch))
         save_path.mkdir(parents=True, exist_ok=True)
+
+        statics_save_path = save_path / Path('statistics.json')
         filename = str(save_path / 'checkpoint-epoch{}.pth'.format(epoch))
+
+        self.metric.write_to_file(path=statics_save_path)  # Save for every checkpoint in case of crash
         torch.save(state, filename)
         self.logger.info("Saving checkpoint: {} ...".format(filename))
 
-    def resume_checkpoint(self, resume_path: Union[str, Path]):
+    def resume_checkpoint(self,
+                          resume_model: Union[str, Path],
+                          resume_metric: Union[str, Path]):
         """
         Resume from saved checkpoints
         Args:
-            resume_path (str, pathlib.Path): Checkpoint path, either absolute or relative
+            resume_model (str, pathlib.Path): Checkpoint path, either absolute or relative
         """
-        if not isinstance(resume_path, (str, Path)):
-            self.logger.warning('resume_path is not str or Path object but of type {},\
-                                 aborting previous checkpoint loading'.format(type(resume_path)))
-            return
+        if not isinstance(resume_model, (str, Path)):
+            self.logger.warning('resume_model is not str or Path object but of type {},\
+                                 aborting previous checkpoint loading'.format(type(resume_model)))
+            return None
 
-        if not Path(resume_path).is_file():
-            self.logger.warning('resume_path object does not exist, ensure that {} is correct,\
-                                 aborting previous checkpoint loading'.format(str(resume_path)))
-            return
+        if not Path(resume_model).is_file():
+            self.logger.warning('resume_model object does not exist, ensure that {} is correct,\
+                                 aborting previous checkpoint loading'.format(str(resume_model)))
+            return None
 
-        resume_path = str(resume_path)
-        self.logger.info("Loading checkpoint: {} ...".format(resume_path))
+        resume_model = str(resume_model)
+        self.logger.info("Loading checkpoint: {} ...".format(resume_model))
 
-        checkpoint = torch.load(resume_path)
+        checkpoint = torch.load(resume_model)
         self.start_epoch = checkpoint['epoch'] + 1
 
         # load architecture params from checkpoint.
@@ -241,4 +243,14 @@ class BaseTrainer:
         else:
             self.lr_scheduler.load_state_dict(checkpoint['optimizer'])
 
+        if resume_metric is None:
+            self.logger.info('No path were given for prior statistics, cannot resume.')
+            self.logger.info('New statistics will be written, and saved as regular.')
+        else:
+            self.metric.resume(resume_path=resume_metric)
+
         self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
+        self.checkpoint_dir = Path(self.resume_checkpoint).parent.parent
+
+        print(self.checkpoint_dir)
+
