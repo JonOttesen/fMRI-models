@@ -234,7 +234,7 @@ class BaseTrainer:
             self.optimizer.load_state_dict(checkpoint['optimizer'])
 
         # load lr_scheduler state from checkpoint only when lr_scheduler type is not changed.
-        if checkpoint['config']['scheduler']['type'] != self.config['scheduler']['type']:
+        if checkpoint['config']['lr_scheduler']['type'] != self.config['lr_scheduler']['type']:
             self.logger.warning("Warning: Different scheduler from that given in the config,\
                                  scheduler parameters are not resumed.")
         elif self.lr_scheduler is None:
@@ -250,7 +250,6 @@ class BaseTrainer:
             self.metric.resume(resume_path=resume_metric)
 
         self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
-        self.checkpoint_dir = Path(self.resume_checkpoint).parent.parent
 
-        print(self.checkpoint_dir)
+        self.checkpoint_dir = Path(resume_metric).parent  # Ensuring the same main folder after resuming
 
