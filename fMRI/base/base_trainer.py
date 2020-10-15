@@ -144,7 +144,7 @@ class BaseTrainer:
             if epoch % self.save_period == 0:
                 self.save_checkpoint(epoch)
                 self.metric.write_to_file(path=statics_save_path)  # Save for every checkpoint in case of crash
-
+            self.logger.info('-----------------------------------')
         self.metric.write_to_file(path=statics_save_path)  # Save metrics at the end
 
 
