@@ -44,8 +44,8 @@ class Trainer(BaseTrainer):
         self.val_images_pr_iteration = int(config['trainer']['val_images_pr_iteration'])
 
         self.len_epoch = len(data_loader) if not self.iterative else self.images_pr_iteration
-        self.log_step = int(self.len_epoch/4)
         self.batch_size = data_loader.batch_size
+        self.log_step = int(self.len_epoch/(4*self.batch_size))
 
     def _train_epoch(self, epoch):
         """
