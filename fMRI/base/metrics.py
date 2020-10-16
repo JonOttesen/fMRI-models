@@ -45,9 +45,8 @@ class MetricTracker(object):
         if not Path(resume_path).is_file():
             self.logger.warning('{} is not a file will not resume\
                                  from MetricTracker instance.'.format(str(resume_path)))
-
         with open(str(resume_path), 'r') as inifile:
-            prev = json.loads(inifile)
+            prev = json.load(inifile)
 
         if self.TRAINING_KEY not in prev.keys() or self.VALIDATION_KEY not in prev.keys():
             self.logger.warning('The given file does not have the training or validation key,\
