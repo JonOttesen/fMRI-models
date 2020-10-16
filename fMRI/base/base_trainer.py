@@ -141,7 +141,7 @@ class BaseTrainer:
                 self.save_checkpoint(epoch)
 
             self.logger.info('-----------------------------------')
-        self.metric.write_to_file(path=statics_save_path)  # Save metrics at the end
+        self.metric.write_to_file(path=self.checkpoint_dir / Path('statistics.json'))  # Save metrics at the end
 
 
     def prepare_device(self, n_gpu_use: int):
