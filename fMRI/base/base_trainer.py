@@ -108,9 +108,10 @@ class BaseTrainer:
         """
         Full training logic
         """
-        # Path where metrics are saved
+        # Use iterations or epochs
+        epochs = self.iterations if self.iterative else self.epochs
 
-        for epoch in range(self.start_epoch, self.epochs + 1):
+        for epoch in range(self.start_epoch, epochs + 1):
             epoch_start_time = time.time()
             loss_dict = self._train_epoch(epoch)
             val_dict = self._valid_epoch(epoch)

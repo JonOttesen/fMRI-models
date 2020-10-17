@@ -117,8 +117,8 @@ trainer = Trainer(
     )
 
 trainer.resume_checkpoint(
-    resume_model='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/epoch_10/checkpoint-epoch10.pth',
-    resume_metric='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/statistics.json',
+    resume_model='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/epoch_20/checkpoint-epoch20.pth',
+    resume_metric='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/epoch_20/statistics.json',
     )
 
 trainer.train()
