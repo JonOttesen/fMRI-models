@@ -12,7 +12,7 @@ import numpy as np
 
 from ..logger import get_logger
 from ..models import MultiLoss, MultiMetric
-from .metrics import MetricTracker
+from ..metrics import MetricTracker
 
 
 class BaseTrainer:
