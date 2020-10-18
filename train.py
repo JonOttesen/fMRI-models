@@ -6,9 +6,8 @@ from fMRI import DatasetContainer
 from fMRI import DatasetLoader
 from fMRI import DatasetInfo
 
-from fMRI.models import MultiLoss
+from fMRI.models import MultiLoss, MultiMetric
 from fMRI.metrics import (
-    MultiMetric,
     NMSE,
     PSNR,
     )
