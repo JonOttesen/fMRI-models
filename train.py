@@ -6,7 +6,13 @@ from fMRI import DatasetContainer
 from fMRI import DatasetLoader
 from fMRI import DatasetInfo
 
-from fMRI.models import MultiLoss, MultiMetric
+from fMRI.models import MultiLoss
+from fMRI.metrics import (
+    MultiMetric,
+    NMSE,
+    PSNR,
+    )
+
 from fMRI.models.reconstruction import UNet
 from fMRI.trainer import Trainer
 from fMRI.masks import KspaceMask
@@ -22,7 +28,7 @@ from fMRI.preprocessing import (
     ZNormalization,
     )
 
-from fMRI.models.reconstruction.losses import SSIM
+from fMRI.models.reconstruction.losses import SSIM, FSSIMLoss
 
 # "save_dir": "/mnt/CRAI-NAS/all/jona/fMRI/UNet",
 
@@ -80,7 +86,14 @@ loss = [(1, torch.nn.L1Loss()), (1, SSIM())]
 loss = MultiLoss(losses=loss)
 
 
-metrics = {'SSIM': SSIM(), 'MSE': torch.nn.MSELoss(), 'L1': torch.nn.L1Loss()}
+metrics = {
+    'SSIM': SSIM(),
+    'FSSIM': FSSIMLoss(),
+    'PSNR': PSNR(),
+    'NMSE': NMSE(),
+    'MSE': torch.nn.MSELoss(),
+    'L1': torch.nn.L1Loss()}
+
 metrics = MultiMetric(metrics=metrics)
 
 path = './fMRI/config/models/UNet/template.json'
@@ -116,10 +129,10 @@ trainer = Trainer(
     seed=42
     )
 
-trainer.resume_checkpoint(
-    resume_model='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/epoch_20/checkpoint-epoch20.pth',
-    resume_metric='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/epoch_20/statistics.json',
-    )
+# trainer.resume_checkpoint(
+    # resume_model='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/epoch_20/checkpoint-epoch20.pth',
+    # resume_metric='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-15/epoch_20/statistics.json',
+    # )
 
 trainer.train()
 

@@ -19,7 +19,7 @@
     "optimizer": {
         "type": "Adam",
         "args":{
-            "lr": 1e-6,
+            "lr": 1e-5,
             "weight_decay": 0,
             "amsgrad": true
         }
