@@ -47,7 +47,25 @@ class SSIM(nn.Module):
     def forward(self,
                 X: torch.Tensor,
                 Y: torch.Tensor,
-                data_range: Union[int, float] = 1):
+                data_range: float = None):
+        """
+        Args:
+            X (torch.Tensor): Prediction
+            Y (torch.Tensor): Ground truth
+            data_range (float): Difference between maximum and minimum value
+        """
+        if not data_range:
+            """
+            See for more info about data_range
+            https://github.com/scikit-image/scikit-image/blob/master/skimage/metrics/_structural_similarity.py#L12-L232
+            Assuming the first dimension is the batch_size
+            """
+            batch_size = X.shape[0]
+
+            X_flattend = X.view(batch_size, -1)
+            data_range = X_flattend.max(dim=1)[0] - X_flattend.min(dim=1)[0]
+            for i in range(len(X.shape) - 1):
+                data_range = torch.unsqueeze(data_range, dim=-1)
 
         C1 = (self.k1 * data_range) ** 2
         C2 = (self.k2 * data_range) ** 2
@@ -81,7 +99,7 @@ class MS_SSIM(object):
     """
 
 if __name__=='__main__':
-    a = torch.rand((1, 1, 256, 256))
-    b = torch.rand((1, 1, 256, 256))
+    a = torch.rand((15, 1, 15, 26))
+    b = torch.rand((15, 1, 15, 26))
     loss = SSIM(channels=3)
     print(loss(a, b))
