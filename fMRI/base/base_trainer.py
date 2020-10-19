@@ -204,7 +204,6 @@ class BaseTrainer:
         Args:
             resume_model (str, pathlib.Path): Checkpoint path, either absolute or relative
         """
-        print('yoooooooooooooooo')
         if not isinstance(resume_model, (str, Path)):
             self.logger.warning('resume_model is not str or Path object but of type {},\
                                  aborting previous checkpoint loading'.format(type(resume_model)))
