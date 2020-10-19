@@ -72,7 +72,6 @@ class SSIM(nn.Module):
             data_range = X_flattend.max(dim=1)[0] - X_flattend.min(dim=1)[0]
             for i in range(len(X.shape) - 1):
                 data_range = torch.unsqueeze(data_range, dim=-1)
-            data_range = 1
 
         C1 = (self.k1 * data_range) ** 2
         C2 = (self.k2 * data_range) ** 2
