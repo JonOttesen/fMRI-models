@@ -43,20 +43,20 @@ class MetricTracker(object):
             TypeError('resume_path is not of type str or Path but {}'.format(type(resume_path)))
 
         if not Path(resume_path).is_file():
-            self.logger.warning('{} is not a file will not resume\
-                                 from MetricTracker instance.'.format(str(resume_path)))
+            self.logger.warning('{} is not a file will not resume '
+                                'from MetricTracker instance.'.format(str(resume_path)))
         with open(str(resume_path), 'r') as inifile:
             prev = json.load(inifile)
 
         if self.TRAINING_KEY not in prev.keys() or self.VALIDATION_KEY not in prev.keys():
-            self.logger.warning('The given file does not have the training or validation key,\
-                                 will not resume from prior checkpoint.')
+            self.logger.warning('The given file does not have the training or validation key, '
+                                'will not resume from prior checkpoint.')
             return
 
         if self.CONFIG_KEY in prev.keys():
             if prev[self.CONFIG_KEY] != self.results[self.CONFIG_KEY]:
-                self.logger.warning('Non identical configs found,\
-                                     this instance will store the new config.')
+                self.logger.warning('Non identical configs found, '
+                                    'this instance will store the new config.')
 
         self.results[self.TRAINING_KEY].update(prev[self.TRAINING_KEY])
         self.results[self.VALIDATION_KEY].update(prev[self.VALIDATION_KEY])
