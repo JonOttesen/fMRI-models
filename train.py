@@ -29,32 +29,30 @@ from fMRI.preprocessing import (
 
 from fMRI.models.reconstruction.losses import SSIM, FSSIMLoss
 
-
+# Inspect folders
 train = DatasetContainer()
-train.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_train', datasetname='fastMRI', dataset_type='training')
+train.fastMRI(path='folder/where/fastmri/training_data/is/stored', datasetname='fastMRI', dataset_type='training')
 
 valid = DatasetContainer()
-valid.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val', datasetname='fastMRI', dataset_type='validation')
+valid.fastMRI(path='folder/where/fastmri/validation_data/is/stored', datasetname='fastMRI', dataset_type='validation')
+
 test = DatasetContainer()
-test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
-exit()
+test.fastMRI(path='folder/where/fastmri/test_data/is/stored', datasetname='fastMRI', dataset_type='test')
 
-# train = DatasetContainer.to_json(path='./docs/train_files.json')
-# valid = DatasetContainer.to_json(path='./docs/valid_files.json')
-# test = DatasetContainer.to_json(path='./docs/test_files.json')
+# Write to files
+train.to_json(path='./docs/train_files.json')
+valid.to_json(path='./docs/valid_files.json')
+test.to_json(path='./docs/test_files.json')
 
-
+# Open files, to skip the inspection stage each time you train
 train = DatasetContainer.from_json(path='./docs/train_files.json')
 valid = DatasetContainer.from_json(path='./docs/valid_files.json')
 test = DatasetContainer.from_json(path='./docs/test_files.json')
 
-
-# train = DatasetContainer()
-# train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
-
-
+# Making mask instance
 mask = KspaceMask(acceleration=4, seed=42)
 
+# Crating the transforms the kspace training data must go through
 train_transforms = torchvision.transforms.Compose([
     PadKspace(shape=(320, 320)),
     ComplexNumpyToTensor(),
@@ -64,6 +62,7 @@ train_transforms = torchvision.transforms.Compose([
     ZNormalization(dim=0),
     ])
 
+# Crating the transforms the kspace validation data must go through, note no apply mask
 truth_transforms = torchvision.transforms.Compose([
     PadKspace(shape=(320, 320)),
     ComplexNumpyToTensor(),
@@ -73,23 +72,26 @@ truth_transforms = torchvision.transforms.Compose([
     ])
 
 
+# Create DatasetLoaders which open the files and is pytorch dataloader_compat
 training_loader = DatasetLoader(
     datasetcontainer=train,
     train_transforms=train_transforms,
-    truth_transforms=truth_transforms
+    truth_transforms=truth_transforms,
+    dataloader_compat=True,
     )
 
 validation_loader = DatasetLoader(
     datasetcontainer=valid,
     train_transforms=train_transforms,
-    truth_transforms=truth_transforms
+    truth_transforms=truth_transforms,
+    dataloader_compat=True,
     )
 
-
+# Create loss functions, multiple is stored in a list as tuple
 loss = [(1, torch.nn.L1Loss()), (1, SSIM())]
 loss = MultiLoss(losses=loss)
 
-
+# Metrics used in validation
 metrics = {
     'SSIM': SSIM(),
     'FSSIM': FSSIMLoss(),
@@ -100,7 +102,7 @@ metrics = {
 
 metrics = MultiMetric(metrics=metrics)
 
-path = './fMRI/config/models/UNet/template.json'
+path = 'path/to/config.json'
 
 model = UNet(n_channels=1, n_classes=1)
 
@@ -117,15 +119,10 @@ valid_loader = torch.utils.data.DataLoader(dataset=validation_loader,
                                            batch_size=config.batch_size,
                                            shuffle=config.shuffle)
 
+# Optim and scheduler from config
 optimizer = config.optimizer(model_params=model.parameters())
 lr_scheduler = config.lr_scheduler(optimizer=optimizer)
-a = h5py.File('/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val/file_brain_AXFLAIR_201_6002942.h5', 'r')
 
-for i in valid_loader:
-    print(i[0].shape, i[1].shape)
-    print(i[0].dtype, i[1].dtype)
-
-exit()
 
 trainer = Trainer(
     model=model,
@@ -143,8 +140,8 @@ trainer = Trainer(
 exit()
 
 trainer.resume_checkpoint(
-    resume_model='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-18/epoch_15/checkpoint-epoch15.pth',
-    resume_metric='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-18/epoch_15/statistics.json',
+    resume_model='/resume/path/2020-10-18/epoch_15/checkpoint-epoch15.pth',
+    resume_metric='/resume_path/2020-10-18/epoch_15/statistics.json',
     )
 
 trainer.train()

@@ -41,7 +41,7 @@
         "iterations": 50,
         "images_pr_iteration": 4000,
         "val_images_pr_iteration": 1000,
-        "save_dir": "/mnt/CRAI-NAS/all/jona/fMRI/UNet",
+        "save_dir": "where/to/dave/checkpoints",
         "save_period": 5,
         "early_stop": 10
 
