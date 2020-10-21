@@ -29,20 +29,25 @@ from fMRI.preprocessing import (
 
 from fMRI.models.reconstruction.losses import SSIM, FSSIMLoss
 
-# "save_dir": "/mnt/CRAI-NAS/all/jona/fMRI/UNet",
 
-# train = DatasetContainer()
-# train.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_train', datasetname='fastMRI', dataset_type='training')
+train = DatasetContainer()
+train.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_train', datasetname='fastMRI', dataset_type='training')
 
-# valid = DatasetContainer()
-# valid.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val', datasetname='fastMRI', dataset_type='validation')
+valid = DatasetContainer()
+valid.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val', datasetname='fastMRI', dataset_type='validation')
+test = DatasetContainer()
+test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
+exit()
 
-# test = DatasetContainer()
-# test.fastMRI(path='/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_test', datasetname='fastMRI', dataset_type='test')
+# train = DatasetContainer.to_json(path='./docs/train_files.json')
+# valid = DatasetContainer.to_json(path='./docs/valid_files.json')
+# test = DatasetContainer.to_json(path='./docs/test_files.json')
+
 
 train = DatasetContainer.from_json(path='./docs/train_files.json')
 valid = DatasetContainer.from_json(path='./docs/valid_files.json')
-# test = DatasetContainer.from_json(path='./docs/test_files.json')
+test = DatasetContainer.from_json(path='./docs/test_files.json')
+
 
 # train = DatasetContainer()
 # train.fastMRI(path='/home/jon/Documents/CRAI/fMRI/train_test_files', datasetname='fastMRI', dataset_type='training')
@@ -114,7 +119,13 @@ valid_loader = torch.utils.data.DataLoader(dataset=validation_loader,
 
 optimizer = config.optimizer(model_params=model.parameters())
 lr_scheduler = config.lr_scheduler(optimizer=optimizer)
+a = h5py.File('/mnt/CRAI-NAS/all/jingpeng/data/fastmri/brain/multicoil_val/file_brain_AXFLAIR_201_6002942.h5', 'r')
 
+for i in valid_loader:
+    print(i[0].shape, i[1].shape)
+    print(i[0].dtype, i[1].dtype)
+
+exit()
 
 trainer = Trainer(
     model=model,
@@ -127,6 +138,9 @@ trainer = Trainer(
     lr_scheduler=lr_scheduler,
     seed=42
     )
+
+
+exit()
 
 trainer.resume_checkpoint(
     resume_model='/mnt/CRAI-NAS/all/jona/fMRI/UNet/2020-10-18/epoch_15/checkpoint-epoch15.pth',
