@@ -6,9 +6,9 @@ import torch
 import torchvision
 import numpy as np
 
-from .DatasetContainer import DatasetContainer
-from .DatasetEntry import DatasetEntry
-from .DatasetInfo import DatasetInfo
+from .datasetcontainer import DatasetContainer
+from .datasetentry import DatasetEntry
+from .datasetinfo import DatasetInfo
 
 from ..logger import get_logger
 
