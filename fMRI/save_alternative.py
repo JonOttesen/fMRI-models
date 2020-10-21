@@ -4,7 +4,6 @@ import numpy as np
 
 import nibabel as nib
 
-
 from .dataset import (
     DatasetContainer,
     DatasetEntry,

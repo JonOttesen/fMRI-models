@@ -9,8 +9,8 @@ from copy import deepcopy
 
 from tqdm import tqdm
 
-from .DatasetEntry import DatasetEntry
-from .DatasetInfo import DatasetInfo
+from .datasetentry import DatasetEntry
+from .datasetinfo import DatasetInfo
 from ..logger import get_logger
 
 
