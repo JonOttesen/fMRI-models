@@ -132,7 +132,7 @@ dmypy.json
 *.gz
 
 # Subl projects
-*.sublime-project
+# *.sublime-project
 *.sublime-workspace
 *.h5
 testing
