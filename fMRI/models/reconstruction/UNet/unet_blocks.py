@@ -20,14 +20,14 @@ class DoubleConv(nn.Module):
                                kernel_size=3,
                                padding=1)
 
-        self.norm1 = nn.BatchNorm2d(mid_channels)
+        self.norm1 = nn.InstanceNorm2d(mid_channels)
 
         self.conv2 = nn.Conv2d(in_channels=mid_channels,
                                out_channels=out_channels,
                                kernel_size=3,
                                padding=1)
 
-        self.norm2 = nn.BatchNorm2d(out_channels)
+        self.norm2 = nn.InstanceNorm2d(out_channels)
 
     def forward(self, x):
         x = self.conv1(x)
