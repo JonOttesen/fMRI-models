@@ -58,11 +58,15 @@ class Trainer(BaseTrainer):
         losses = defaultdict(list)
 
         for batch_idx, (data, target) in enumerate(self.data_loader):
-            data, target = data.to(self.device), target.to(self.device)
+            data = data.to(self.device)
 
             self.optimizer.zero_grad()
 
             output = self.model(data)
+
+            del data
+            target = target.to(self.device)
+
             loss = self.loss_function(output, target)
             loss.backward()
 
