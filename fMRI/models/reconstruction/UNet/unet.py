@@ -6,7 +6,11 @@ from .unet_blocks import DoubleConv, UpConv, DownConv, OutConv
 
 class UNet(nn.Module):
 
-    def __init__(self, n_channels, n_classes, bilinear=True):
+    def __init__(self,
+                 n_channels: int,
+                 n_classes: int,
+                 n: int = 128,
+                 bilinear: bool = True):
         super(UNet, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
@@ -14,17 +18,17 @@ class UNet(nn.Module):
 
         factor = 2 if bilinear else 1
 
-        self.inc = DoubleConv(n_channels, 64)
-        self.down1 = DownConv(64, 128)
-        self.down2 = DownConv(128, 256)
-        self.down3 = DownConv(256, 512)
-        self.down4 = DownConv(512, 1024 // factor)
+        self.inc = DoubleConv(n_channels, n)
+        self.down1 = DownConv(n, 2*n)
+        self.down2 = DownConv(2*n, 4*n)
+        self.down3 = DownConv(4*n, 8*n)
+        self.down4 = DownConv(8*n, 16*n // factor)
 
-        self.up1 = UpConv(1024, 512 // factor, bilinear)
-        self.up2 = UpConv(512, 256 // factor, bilinear)
-        self.up3 = UpConv(256, 128 // factor, bilinear)
-        self.up4 = UpConv(128, 64, bilinear)
-        self.outc = OutConv(64, n_classes)
+        self.up1 = UpConv(16*n, 8*n // factor, bilinear)
+        self.up2 = UpConv(8*n, 4*n // factor, bilinear)
+        self.up3 = UpConv(4*n, 2*n // factor, bilinear)
+        self.up4 = UpConv(2*n, n, bilinear)
+        self.outc = OutConv(n, n_classes)
 
 
     def forward(self, x):
@@ -33,9 +37,9 @@ class UNet(nn.Module):
         x2 = self.down1(x1)
         x3 = self.down2(x2)
         x4 = self.down3(x3)
-        x5 = self.down4(x4)
+        x = self.down4(x4)
 
-        x = self.up1(x5, x4)
+        x = self.up1(x, x4)
         x = self.up2(x, x3)
         x = self.up3(x, x2)
         x = self.up4(x, x1)
