@@ -64,7 +64,7 @@ class Trainer(BaseTrainer):
 
             output = self.model(data)
 
-            del data
+            data = data.cpu()
             target = target.to(self.device)
 
             loss = self.loss_function(output, target)
