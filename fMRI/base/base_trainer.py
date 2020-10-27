@@ -252,5 +252,5 @@ class BaseTrainer:
 
         self.logger.info("Checkpoint loaded. Resume training from epoch {}".format(self.start_epoch))
 
-        self.checkpoint_dir = Path(resume_metric).parent  # Ensuring the same main folder after resuming
+        self.checkpoint_dir = Path(resume_metric).parent.parent  # Ensuring the same main folder after resuming
 
