@@ -71,7 +71,7 @@ class DatasetEntry(object):
         return h5py.File(image_path, 'r')
 
     def open_nifti(self, image_path):
-        return nib.load(image_path).get_fdata()
+        return nib.load(image_path)
 
     def add_shape(self, open_func=None, shape=None, keyword='kspace'):
         if isinstance(shape, tuple):
