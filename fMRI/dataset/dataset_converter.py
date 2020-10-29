@@ -58,7 +58,7 @@ class DatasetConverter(object):
 
         return volume
 
-    def to_hdf5(self, save_folder: Union[str, Path]):
+    def to_hdf5(self, save_folder: Union[str, Path], keyword: str = 'kspace'):
 
         save_folder = Path(save_folder)
         save_folder.mkdir(parents=True, exist_ok=True)
@@ -71,7 +71,7 @@ class DatasetConverter(object):
             save_path = save_folder / Path(filename + '.h5')
 
             hf = h5py.File(save_path, 'w')
-            hf.create_dataset('kspace', data=volume)
+            hf.create_dataset(keyword, data=volume)
             new_entry.image_path = save_path
             new_entry.shape = volume.shape
 
