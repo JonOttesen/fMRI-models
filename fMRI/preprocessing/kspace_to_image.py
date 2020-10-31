@@ -1,10 +1,10 @@
 import torch
 import numpy as np
-try:
+"""try:
     import pyfftw
 except:
     pass
-
+"""
 from .fastmri import math
 from .fastmri.coil_combine import rss
 
@@ -37,17 +37,19 @@ class KspaceToImage(object):
         """
         if isinstance(tensor, torch.Tensor):
             return math.ifft2c(tensor)
-        elif isinstance(tensor, np.ndarray) and self.fftw:
-            return self.fftw_transform(tensor)
         else:
             raise TypeError('tensor need to be torch.Tensor or np.ndarray with fftw enabled')
+        """
+        elif isinstance(tensor, np.ndarray) and self.fftw:
+            return self.fftw_transform(tensor)
+        """
 
     def __repr__(self):
         return self.__class__.__name__ + '(fftw={0})'.format(self.fftw)
 
-
+"""
     def fftw_transform(self, tensor):
-        """
+
         shape = tensor.shape
         tensor = np.fft.ifftshift(tensor, axes=(-2, -1))
         # kspace = pyfftw.empty_aligned(shape, dtype='complex64')
@@ -59,7 +61,7 @@ class KspaceToImage(object):
 
         ifft_img = np.fft.fftshift(ifft_object(), axes=(-2, -1))
         return ifft_img
-        """
+
         shape = tensor.shape
         if not shape in self.transforms.keys():
             kspace = pyfftw.empty_aligned(shape, dtype='complex64')
@@ -69,3 +71,4 @@ class KspaceToImage(object):
         ifft2, kspace = self.transforms[shape]
         kspace[:] = tensor
         return ifft2()
+"""
