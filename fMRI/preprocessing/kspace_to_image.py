@@ -16,12 +16,12 @@ class KspaceToImage(object):
     """
     def __init__(self,
                  fftw: bool = False,
-                 normalize: bool = False):
+                 norm: str = 'forward'):
         """
         Args:
             fftw (bool): Whether to enable fftw instead of pytorch
         """
-        self.normalize = normalize
+        self.norm = norm
         self.fftw = fftw
         self.transforms = {}
 
@@ -38,7 +38,7 @@ class KspaceToImage(object):
 
         """
         if isinstance(tensor, torch.Tensor):
-            return math.ifft2c(tensor, normalize=self.normalize)
+            return math.ifft2c(tensor, norm=self.norm)
         else:
             raise TypeError('tensor need to be torch.Tensor or np.ndarray with fftw enabled')
         """

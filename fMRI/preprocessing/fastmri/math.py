@@ -6,6 +6,7 @@ LICENSE file in the root directory of this source tree.
 """
 
 import torch
+import torch.fft
 
 
 def complex_mul(x, y):
@@ -48,7 +49,7 @@ def complex_conj(x):
     return torch.stack((x[..., 0], -x[..., 1]), dim=-1)
 
 
-def fft2c(data, normalize=False):
+def fft2c(data, norm='forward'):
     """
     Apply centered 2 dimensional Fast Fourier Transform.
 
@@ -63,13 +64,13 @@ def fft2c(data, normalize=False):
     """
     assert data.size(-1) == 2
     data = ifftshift(data, dim=(-3, -2))
-    data = torch.fft.fft(data, 2, normalized=normalize)
+    data = torch.fft.fft(data, 2, norm=norm)
     data = fftshift(data, dim=(-3, -2))
 
     return data
 
 
-def ifft2c(data, normalize=False):
+def ifft2c(data, norm: str = 'forward'):
     """
     Apply centered 2-dimensional Inverse Fast Fourier Transform.
 
@@ -84,7 +85,7 @@ def ifft2c(data, normalize=False):
     """
     assert data.size(-1) == 2
     data = ifftshift(data, dim=(-3, -2))
-    data = torch.fft.ifft(data, 2, normalized=normalize)
+    data = torch.fft.ifft(data, 2, norm=norm)
     data = fftshift(data, dim=(-3, -2))
 
     return data
