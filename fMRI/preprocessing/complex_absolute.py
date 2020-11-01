@@ -24,7 +24,8 @@ class ComplexAbsolute(object):
                           if the complex_absolute is not calculated
 
         """
-        return math.complex_abs(tensor)
+        assert tensor.dtype in [torch.complex64, torch.complex128]
+        return tensor.abs()
 
     def __repr__(self):
         return self.__class__.__name__

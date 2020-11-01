@@ -15,15 +15,17 @@ class KspaceToImage(object):
     Transforms the given k-space data to the corresponding image using Fourier transforms
     """
     def __init__(self,
+                 norm: str = 'forward',
                  fftw: bool = False,
-                 norm: str = 'forward'):
+                 ):
         """
         Args:
+            norm (str): normalization method used in the ifft transform,
+                see doc for torch.fft.ifft for possible args
             fftw (bool): Whether to enable fftw instead of pytorch
         """
         self.norm = norm
         self.fftw = fftw
-        self.transforms = {}
 
     def __call__(self, tensor: torch.Tensor):
         """
@@ -38,7 +40,10 @@ class KspaceToImage(object):
 
         """
         if isinstance(tensor, torch.Tensor):
-            return math.ifft2c(tensor, norm=self.norm)
+            data = math.ifftshift(tensor, dim=(-2, -1))
+            data = torch.fft.ifftn(data, dim=(-2, -1), norm='forward')
+            data = math.fftshift(data, dim=(-2, -1))
+            return data
         else:
             raise TypeError('tensor need to be torch.Tensor or np.ndarray with fftw enabled')
         """

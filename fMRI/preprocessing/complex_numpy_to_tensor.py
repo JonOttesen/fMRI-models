@@ -17,11 +17,12 @@ class ComplexNumpyToTensor(object):
             tensor (np.ndarry): Array with shape (batch, coils, rows, columns)
         Returns:
             torch.Tensor: The torch.Tensor version of the complex numpy array
-                          with shape (batch, coils, rows, columns, 2) with the
+                          with shape (batch, coils, rows, columns) with the
                           last dim being the real and complex part
 
         """
-        return T.to_tensor(tensor)
+
+        return torch.from_numpy(tensor)
 
     def __repr__(self):
         return self.__class__.__name__ + '()'
