@@ -1,7 +1,5 @@
 import torch
-import numpy as np
 
-from .fastmri import math
 from .fastmri.coil_combine import rss
 
 class RSS(object):

@@ -1,12 +1,6 @@
 import torch
-import numpy as np
-"""try:
-    import pyfftw
-except:
-    pass
-"""
+
 from .fastmri import math
-from .fastmri.coil_combine import rss
 
 class KspaceToImage(object):
     """
@@ -15,17 +9,15 @@ class KspaceToImage(object):
     Transforms the given k-space data to the corresponding image using Fourier transforms
     """
     def __init__(self,
-                 norm: str = 'forward',
+                 norm: str = 'backward',
                  fftw: bool = False,
                  ):
         """
         Args:
             norm (str): normalization method used in the ifft transform,
                 see doc for torch.fft.ifft for possible args
-            fftw (bool): Whether to enable fftw instead of pytorch
         """
         self.norm = norm
-        self.fftw = fftw
 
     def __call__(self, tensor: torch.Tensor):
         """
@@ -41,7 +33,7 @@ class KspaceToImage(object):
         """
         if isinstance(tensor, torch.Tensor):
             data = math.ifftshift(tensor, dim=(-2, -1))
-            data = torch.fft.ifftn(data, dim=(-2, -1), norm='forward')
+            data = torch.fft.ifftn(data, dim=(-2, -1), norm=self.norm)
             data = math.fftshift(data, dim=(-2, -1))
             return data
         else:
@@ -52,7 +44,7 @@ class KspaceToImage(object):
         """
 
     def __repr__(self):
-        return self.__class__.__name__ + '(fftw={0})'.format(self.fftw)
+        return self.__class__.__name__ + '(norm={0})'.format(self.norm)
 
 """
     def fftw_transform(self, tensor):

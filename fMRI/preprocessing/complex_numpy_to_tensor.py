@@ -1,8 +1,6 @@
 import torch
 import numpy as np
 
-from .fastmri import transforms as T
-
 class ComplexNumpyToTensor(object):
     """
     ***torchvision.Transforms compatible***
