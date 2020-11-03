@@ -8,6 +8,8 @@ from datetime import datetime
 # from logger import TensorboardWriter
 
 import torch
+import py3nvml
+
 import numpy as np
 
 from ..logger import get_logger
@@ -155,14 +157,24 @@ class BaseTrainer:
         if n_gpu_use > 0 and n_gpu == 0:
             self.logger.warning("Warning: There\'s no GPU available on this machine,"
                                 "training will be performed on CPU.")
-            n_gpu_use = 0
+            n_gpu_use = n_gpu
         if n_gpu_use > n_gpu:
-            self.logger.warning("Warning: The number of GPU\'s configured to use is {}, but only {} are available "
-                                "on this machine.".format(n_gpu_use, n_gpu))
+            self.logger.warning("Warning: The number of GPU\'s configured to use is {}, but only {} are available on this machine.".format(n_gpu_use, n_gpu))
             n_gpu_use = n_gpu
 
-        device = torch.device('cuda:0' if n_gpu_use > 0 else 'cpu')
-        list_ids = list(range(n_gpu_use))
+        free_gpus = py3nvml.get_free_gpus()
+        n_gpu_use = min(n_gpu_use, len(free_gpus))
+
+        list_ids = [i for i in range(n_gpu_use) if free_gpus[i]]
+        n_gpu_use = min(n_gpu_use, len(list_ids))
+
+        device = torch.device('cuda:{}'.format(list_ids[0]) if n_gpu_use > 0 else 'cpu')
+        if device.type == 'cpu':
+            self.logger.warning('current selected device is the cpu, you sure about this?')
+
+        self.logger.info('Selected training device is: {}'.format(device.type))
+        self.logger.info('The available gpu devices are: {}'.format(list_ids))
+
         return device, list_ids
 
     def save_checkpoint(self, epoch):
