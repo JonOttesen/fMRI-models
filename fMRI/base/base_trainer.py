@@ -171,7 +171,7 @@ class BaseTrainer:
         if device.type == 'cpu':
             self.logger.warning('current selected device is the cpu, you sure about this?')
 
-        self.logger.info('Selected training device is: {}'.format(device.type))
+        self.logger.info('Selected training device is: {}:{}'.format(device.type, device.index))
         self.logger.info('The available gpu devices are: {}'.format(list_ids))
 
         return device, list_ids
