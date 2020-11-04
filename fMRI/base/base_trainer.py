@@ -164,7 +164,8 @@ class BaseTrainer:
 
         free_gpus = py3nvml.get_free_gpus()
 
-        list_ids = [i for i in range(n_gpu) if free_gpus[i]][:n_gpu_use]
+        list_ids = [i for i in range(n_gpu) if free_gpus[i]]
+        n_gpu_use = min(n_gpu_use, len(list_ids))
 
         device = torch.device('cuda:{}'.format(list_ids[0]) if n_gpu_use > 0 else 'cpu')
         if device.type == 'cpu':
