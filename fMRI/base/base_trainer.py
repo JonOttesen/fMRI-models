@@ -44,7 +44,7 @@ class BaseTrainer:
         self.lr_scheduler = lr_scheduler
 
         # TODO: Use DistributedDataParallel instead
-        if len(device_ids) > 1:
+        if len(device_ids) > 1 and config['n_gpu'] > 1:
             self.model = torch.nn.DataParallel(model, device_ids=device_ids)
 
         self.loss_function = loss_function.to(self.device)
@@ -164,8 +164,7 @@ class BaseTrainer:
 
         free_gpus = py3nvml.get_free_gpus()
 
-        list_ids = [i for i in range(n_gpu) if free_gpus[i]]
-        n_gpu_use = min(n_gpu_use, len(list_ids))
+        list_ids = [i for i in range(n_gpu) if free_gpus[i]][:n_gpu_use]
 
         device = torch.device('cuda:{}'.format(list_ids[0]) if n_gpu_use > 0 else 'cpu')
         if device.type == 'cpu':
