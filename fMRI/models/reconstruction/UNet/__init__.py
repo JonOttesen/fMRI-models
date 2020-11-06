@@ -1,1 +1,2 @@
-from .unet import UNet
+from .RELU import RELUUNet
+from .GELU import GELUUNet

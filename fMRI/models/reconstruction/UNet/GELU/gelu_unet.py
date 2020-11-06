@@ -4,14 +4,14 @@ import torch.nn as nn
 from .unet_blocks import DoubleConv, UpConv, DownConv, OutConv
 
 
-class UNet(nn.Module):
+class GELUUNet(nn.Module):
 
     def __init__(self,
                  n_channels: int,
                  n_classes: int,
                  n: int = 128,
                  bilinear: bool = True):
-        super(UNet, self).__init__()
+        super(GELUUNet, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.bilinear = bilinear
