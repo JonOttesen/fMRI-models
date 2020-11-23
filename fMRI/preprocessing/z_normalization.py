@@ -12,13 +12,12 @@ class ZNormalization(object):
     ZNormalizes the image by (x-mean(x))/(std(x))
     along the specified dimension
     """
-    def __init__(self, dim: int = 1, inplace: bool = False):
+    def __init__(self, dim: int = 0, inplace: bool = False):
         """
         Args:
-            dim (int): the dimension for the normalization i.e for a batch of images(size=(batch, i, j, k))
-                       dim=0 would normalize with respect to the entire batch whereas dim=1 normalizes
-                       each individual image. For shape (i, j, k) dim=0 normalizes across the i'th dimension
-            inplace (bool,optional): Bool to make this operation in-place.
+            dim (int): the dimension for the normalization. For shape (i, j, k, ...) dim=0
+            normalizes takes the mean and std of the i, j, k, ... 'th dimension. For dim=1
+            the mean and std is taken for the j, k, ... 'th dimension
         """
         self.dim = dim
         self.inplace = inplace
@@ -33,12 +32,13 @@ class ZNormalization(object):
 
         """
         norm_dim = tuple(range(self.dim, tensor.ndim))
-        tensor = tensor.numpy()
-        return F.normalize(tensor=torch.from_numpy(tensor),
+        norm = F.normalize(tensor=tensor,
                            mean=tensor.mean(axis=norm_dim),
                            std=tensor.std(axis=norm_dim),
                            inplace=self.inplace,
                            )
+
+        return norm
 
     def __repr__(self):
         return self.__class__.__name__ + '(dim={0}, inplace={1})'.format(self.dim, self.inplace)
@@ -46,6 +46,6 @@ class ZNormalization(object):
 
 if __name__=='__main__':
     img = torch.randn(size=(10, 40, 800))
-    norm = ZNormalization(dim=0)
-    print(norm(tensor=img))
-
+    norm = ZNormalization(dim=1)
+    a = norm(tensor=img)
+    print(torch.std(a))
