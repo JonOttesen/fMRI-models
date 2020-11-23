@@ -25,30 +25,25 @@ class KspaceMask:
     mask_random_uniform: returns a mask where all the data points except
         the center are uniformly randomly sampled
     """
-    MASK_TYPES = ['linear', 'uniform']
+    MASK_TYPES = ['equidistant', 'random']
 
     def __init__(self,
                  acceleration: int,
-                 mask_type: str = 'linear',
+                 mask_type: str = 'equidistant',
                  seed: int = None,
                  center_fraction: float = 0.08,
-                 randomize_center_fraction: bool = False,
-                 randomize_center_interval: float = 0.05):
+                 ):
 
         self.acceleration = acceleration
         self._mask_type = mask_type
         self.seed = seed
         self.center_fraction = center_fraction
-        self.randomize_center_fraction = randomize_center_fraction
-        self.randomize_center_interval = randomize_center_interval
-
-        if self.randomize_center_interval > self.center_fraction:
-            raise ValueError('randomize_center_interval is larger than center_interval')
 
         assert mask_type in self.MASK_TYPES, 'mask_type {} not in MASK_TYPES {}'.format(mask_type, self.MASK_TYPES)
+
         self.mask_type_func = {
-            'linear': self._mask_linearly_spaced,
-            'uniform': self._mask_random_uniform
+            'equidistant': self.equidistant,
+            'random': self.random_uniform,
             }
         self.masks = None if seed == None else {}  # Dict for storing prior created masks
 
@@ -77,7 +72,7 @@ class KspaceMask:
             return self.masks[lines]
         return self.mask_type_func[self.mask_type](lines)
 
-    def _mask_random_uniform(self, lines: int) -> torch.Tensor:
+    def random_uniform(self, lines: int) -> torch.Tensor:
         """
         Creates a mask by selecting uniformly random which columns that is included in the mask,
         except for the low frequency center.
@@ -91,11 +86,7 @@ class KspaceMask:
             mask = np.zeros(lines)
             indices = np.arange(lines)
 
-            if self.randomize_center_fraction:
-                center_frac = np.random.uniform(self.center_fraction - self.randomize_center_interval,
-                                                self.center_fraction + self.randomize_center_interval)
-            else:
-                center_frac = self.center_fraction
+            center_frac = self.center_fraction
 
             low_freq = int(round(center_frac/2*lines))
 
@@ -110,7 +101,7 @@ class KspaceMask:
 
         return torch.from_numpy(mask).bool()
 
-    def _mask_linearly_spaced(self, lines: int) -> torch.Tensor:
+    def equidistant(self, lines: int) -> torch.Tensor:
         """
         Creates a mask by with linearly spaced columns except the low frequency center
         There should be a total of lines/self.acceleration masks (pm 1-2)
@@ -123,11 +114,7 @@ class KspaceMask:
         with temp_seed(self.seed):
             mask = np.zeros(lines)
 
-            if self.randomize_center_fraction:
-                center_frac = np.random.uniform(self.center_fraction - self.randomize_center_interval,
-                                                self.center_fraction + self.randomize_center_interval)
-            else:
-                center_frac = self.center_fraction  # Non randomized center fraction
+            center_frac = self.center_fraction
 
             low_freq = int(round(center_frac/2*lines))  # Low freq lines on each side of origin
 
