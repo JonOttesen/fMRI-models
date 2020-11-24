@@ -45,12 +45,12 @@ class BartReconstruction:
         return bart(1, 'ecalib -m{}'.format(m), tensor[:,:,None,:])
 
     @classmethod
-    def paralell_imageing(cls,
-                          tensor: Union[np.ndarray, torch.Tensor],
-                           m: int = 1,
-                           i: int = 50,
-                           r: float = 0.01,
-                           ):
+    def paralell_imaging(cls,
+                         tensor: Union[np.ndarray, torch.Tensor],
+                         m: int = 1,
+                         i: int = 50,
+                         r: float = 0.01,
+                         ):
         """
         Args:
             tensor (np.ndarray, torch.Tensor): Input image to be reconstructed.
