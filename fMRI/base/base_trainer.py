@@ -131,9 +131,8 @@ class BaseTrainer:
 
             # print logged informations to the screen
             # training loss
-            for key, loss in loss_dict.items():
-                loss = np.array(loss)
-                self.logger.info('Mean training loss: {}'.format(np.mean(loss)))
+            loss = np.array(loss_dict['loss'])
+            self.logger.info('Mean training loss: {}'.format(np.mean(loss)))
 
             if val_dict is not None:
                 for key, valid in val_dict.items():
