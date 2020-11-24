@@ -194,7 +194,8 @@ class BaseTrainer:
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
             'scheduler': scheduler_state_dict,
-            'config': self.config
+            'config': self.config,
+            'loss_func': str(self.loss_function),
             }
 
         save_path = Path(self.checkpoint_dir) / Path('epoch_' + str(epoch))

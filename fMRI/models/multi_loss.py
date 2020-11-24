@@ -9,6 +9,9 @@ class MultiLoss(torch.nn.Module):
         super(MultiLoss, self).__init__()
         self.losses = losses
 
+    def __repr__(self):
+        return self.__class__.__name__ + '(losses={0})'.format(self.losses)
+
     def to(self, device):
         for i, (weight, loss_func) in enumerate(self.losses):
             self.losses[i] = (weight, loss_func.to(device=device))
@@ -25,4 +28,5 @@ class MultiLoss(torch.nn.Module):
             loss += weight*loss_func(x, y)
 
         return loss
+
 

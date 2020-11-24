@@ -34,6 +34,7 @@ class SSIM(nn.Module):
         super(SSIM, self).__init__()
         self.size = size
         self.sigma = sigma
+        self.channels = channels
         self.k1 = k1
         self.k2 = k2
         self.gaussian_window = torch.nn.Parameter(gaussian_window(size=self.size,
@@ -42,6 +43,10 @@ class SSIM(nn.Module):
 
         NP = size ** 2
         self.cov_norm = NP / (NP - 1)
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(size={0}, sigma={1}, channels={2}, k1={3}, k2={4})'.format(
+            self.size, self.sigma, self.channels, self.k1, self.k2)
 
     def apply_conv2d(self, X: torch.Tensor, pad: int = 0):
         channels = X.shape[1]

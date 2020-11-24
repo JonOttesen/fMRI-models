@@ -80,6 +80,8 @@ class Trainer(BaseTrainer):
             if batch_idx*self.batch_size >= self.images_pr_iteration and self.iterative:
                 break
 
+        losses['loss_func'] = str(self.loss_function)
+
         return losses
 
     def _valid_epoch(self, epoch):
