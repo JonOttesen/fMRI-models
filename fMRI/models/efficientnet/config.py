@@ -10,31 +10,80 @@ class BlockArgs:
     expand_ratio: int
     input_filters: int
     output_filters: int
-    se_ratio: Union[float, None]
-    id_skip: bool
+    se_ratio: Union[float, None] = 0.25
+    id_skip: bool = True
 
 # Efficientnet blocks
 blocks = [
-    BlockArgs(1, 3, [1, 1], 1, 32, 16, 0.25, True),
-    BlockArgs(2, 3, [2, 2], 6, 16, 24, 0.25, True),
-    BlockArgs(2, 5, [2, 2], 6, 24, 40, 0.25, True),
-    BlockArgs(3, 3, [2, 2], 6, 40, 80, 0.25, True),
-    BlockArgs(3, 5, [1, 1], 6, 80, 112, 0.25, True),
-    BlockArgs(4, 5, [2, 2], 6, 112, 192, 0.25, True),
-    BlockArgs(1, 3, [1, 1], 6, 192, 320, 0.25, True),
+    BlockArgs(
+        num_repeat=1,
+        kernel_size=3,
+        stride=[1, 1],
+        expand_ratio=1,
+        input_filters=32,
+        output_filters=16,
+    ),
+    BlockArgs(
+        num_repeat=2,
+        kernel_size=3,
+        stride=[2, 2],
+        expand_ratio=6,
+        input_filters=16,
+        output_filters=24,
+    ),
+    BlockArgs(
+        num_repeat=2,
+        kernel_size=5,
+        stride=[2, 2],
+        expand_ratio=6,
+        input_filters=24,
+        output_filters=40,
+    ),
+    BlockArgs(
+        num_repeat=3,
+        kernel_size=3,
+        stride=[2, 2],
+        expand_ratio=6,
+        input_filters=40,
+        output_filters=80,
+    ),
+    BlockArgs(
+        num_repeat=3,
+        kernel_size=5,
+        stride=[1, 1],
+        expand_ratio=6,
+        input_filters=80,
+        output_filters=112,
+    ),
+    BlockArgs(
+        num_repeat=4,
+        kernel_size=5,
+        stride=[2, 2],
+        expand_ratio=6,
+        input_filters=112,
+        output_filters=192,
+    ),
+    BlockArgs(
+        num_repeat=1,
+        kernel_size=3,
+        stride=[1, 1],
+        expand_ratio=6,
+        input_filters=192,
+        output_filters=320,
+    ),
     ]
 
 @dataclass
 class GlobalParams:
-    width_coefficient: int
-    depth_coefficient: int
-    image_size: int
-    min_depth: int
+    width_coefficient: Union[int, None] = None
+    depth_coefficient: Union[int, None] = None
+    image_size: Union[int, None] = None
+    min_depth: Union[int, None] = None
     dropout_rate: float = 0.2
     batch_norm_momentum: float = 0.99
     batch_norm_epsilon: float = 0.001
     drop_connect_rate: float = 0.2
-    depth_division: int = 8
+    depth_divisor: int = 8
     include_top: bool = True
 
 

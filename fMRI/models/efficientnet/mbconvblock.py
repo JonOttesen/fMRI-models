@@ -1,9 +1,16 @@
 """model.py - Model and module class for EfficientNet.
    They are built to mirror those in the official TensorFlow implementation.
 """
+from typing import Union, Tuple
+
 import torch
 from torch import nn
 from torch.nn import functional as F
+
+from .config import (
+    BlockArgs,
+    GlobalParams,
+    )
 
 from .swish import (
     Swish,
@@ -28,13 +35,14 @@ class MBConvBlock(nn.Module):
     """
 
     def __init__(self,
-                 block_args,
-                 global_params,
-                 image_size=None,
+                 block_args: BlockArgs,
+                 global_params: GlobalParams,
+                 norm_method: str = 'batch_norm',
+                 image_size: Union[int, Tuple[int]] = None,
                  ):
         super().__init__()
-
         self.block_args = block_args
+        self.norm_method = norm_method
         self.batch_norm_momentum = 1 - global_params.batch_norm_momentum # pytorch's difference from tensorflow
         self.batch_norm_epsilon = global_params.batch_norm_epsilon
 
@@ -47,32 +55,27 @@ class MBConvBlock(nn.Module):
         in_channels = block_args.input_filters  # number of input channels
         out_channels = block_args.input_filters * self.expand_ratio  # number of output channels
 
-
         if self.expand_ratio != 1:
             Conv2d = get_same_padding_conv2d(image_size=image_size)
-            self.expand_conv = Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=1, bias=False)
-            self.bn0 = nn.BatchNorm2d(num_features=out_channels,
-                                      momentum=self.batch_norm_momentum,
-                                      eps=self.batch_norm_epsilon,
+            self.expand_conv = Conv2d(in_channels=in_channels,
+                                      out_channels=out_channels,
+                                      kernel_size=1,
+                                      bias=False,
                                       )
+            self.norm0 = self._norm_method(output=out_channels)
 
         # Depthwise convolution phase
         kernel_size = block_args.kernel_size
         stride = block_args.stride
-
         Conv2d = get_same_padding_conv2d(image_size=image_size)
         self.depthwise_conv = Conv2d(
             in_channels=out_channels, out_channels=out_channels, groups=out_channels,  # groups makes it depthwise
             kernel_size=kernel_size, stride=stride, bias=False)
 
-        # ------------------------------
 
-        self.bn1 = nn.BatchNorm2d(num_features=out_channels,
-                                  momentum=self.batch_norm_momentum,
-                                  eps=self.batch_norm_epsilon,
-                                  )
+        self.norm1 = self._norm_method(output=out_channels)
+
         image_size = calculate_output_image_size(image_size, stride)
-
         # Squeeze and Excitation layer, if desired
         if self.has_se:
             Conv2d = get_same_padding_conv2d(image_size=(1, 1))
@@ -88,10 +91,7 @@ class MBConvBlock(nn.Module):
                                    kernel_size=1,
                                    bias=False,
                                    )
-        self.bn2 = nn.BatchNorm2d(num_features=final_output,
-                                  momentum=self.batch_norm_momentum,
-                                  eps=self.batch_norm_epsilon,
-                                  )
+        self.norm2 = self._norm_method(output=final_output)
         self.swish = MemoryEfficientSwish()
 
     def forward(self, inputs, drop_connect_rate=None):
@@ -107,12 +107,12 @@ class MBConvBlock(nn.Module):
         x = inputs
         if self.expand_ratio != 1:
             x = self.expand_conv(inputs)
-            x = self.bn0(x)
+            x = self.norm0(x)
             x = self.swish(x)
 
-        x = self._depthwise_conv(x)
-        x = self._bn1(x)
-        x = self._swish(x)
+        x = self.depthwise_conv(x)
+        x = self.norm1(x)
+        x = self.swish(x)
 
         # Squeeze and Excitation
         if self.has_se:
@@ -124,11 +124,11 @@ class MBConvBlock(nn.Module):
 
         # Pointwise Convolution
         x = self.project_conv(x)
-        x = self.bn2(x)
+        x = self.norm2(x)
 
         # Skip connection and drop connect
         input_filters, output_filters = self.block_args.input_filters, self.block_args.output_filters
-        if self.id_skip and self._block_args.stride == 1 and input_filters == output_filters:
+        if self.id_skip and self.block_args.stride == 1 and input_filters == output_filters:
             # The combination of skip connection and drop connect brings about stochastic depth.
             if drop_connect_rate:
                 x = drop_connect(x, p=drop_connect_rate, training=self.training)
@@ -141,3 +141,22 @@ class MBConvBlock(nn.Module):
             memory_efficient (bool): Whether to use memory-efficient version of swish.
         """
         self.swish = MemoryEfficientSwish() if memory_efficient else Swish()
+
+    def _norm_method(self, output: int):
+        norms = {
+            'batch_norm': nn.BatchNorm2d(
+                num_features=output,
+                momentum=self.batch_norm_momentum,
+                eps=self.batch_norm_epsilon,
+                ),
+            'instance_norm': nn.InstanceNorm2d(
+                num_features=output,
+                momentum=self.batch_norm_momentum,
+                eps=self.batch_norm_epsilon,
+                ),
+            'layer_norm': nn.LayerNorm(
+                normalized_shape=output,
+                eps=self.batch_norm_epsilon,
+                ),
+            }
+        return norms[self.norm_method]
