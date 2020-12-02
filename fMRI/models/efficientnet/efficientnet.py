@@ -24,17 +24,12 @@ from .mbconvblock import MBConvBlock
 from .config import (
     BlockArgs,
     GlobalParams,
+    VALID_MODELS,
+    efficientnet_params,
+    blocks,
+    GlobalParams
     )
 
-
-VALID_MODELS = (
-    'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3',
-    'efficientnet-b4', 'efficientnet-b5', 'efficientnet-b6', 'efficientnet-b7',
-    'efficientnet-b8',
-
-    # Support the construction of 'efficientnet-l2' without pretrained weights
-    'efficientnet-l2'
-)
 
 class EfficientNet(nn.Module):
     """EfficientNet model.
@@ -137,6 +132,7 @@ class EfficientNet(nn.Module):
             if drop_connect_rate:
                 drop_connect_rate *= float(idx) / len(self.blocks) # scale drop connect_rate
             x = block(x, drop_connect_rate=drop_connect_rate)
+
         # Head
         x = self.swish(self.norm1(self.conv_head(x)))
         return x
@@ -150,104 +146,19 @@ class EfficientNet(nn.Module):
         for block in self.blocks:
             block.set_swish(memory_efficient)
 
-'''
-    def extract_endpoints(self, inputs):
-        """Use convolution layer to extract features
-        from reduction levels i in [1, 2, 3, 4, 5].
-        Args:
-            inputs (tensor): Input tensor.
-        Returns:
-            Dictionary of last intermediate features
-            with reduction levels i in [1, 2, 3, 4, 5].
-            Example:
-                >>> import torch
-                >>> from efficientnet.model import EfficientNet
-                >>> inputs = torch.rand(1, 3, 224, 224)
-                >>> model = EfficientNet.from_pretrained('efficientnet-b0')
-                >>> endpoints = model.extract_endpoints(inputs)
-                >>> print(endpoints['reduction_1'].shape)  # torch.Size([1, 16, 112, 112])
-                >>> print(endpoints['reduction_2'].shape)  # torch.Size([1, 24, 56, 56])
-                >>> print(endpoints['reduction_3'].shape)  # torch.Size([1, 40, 28, 28])
-                >>> print(endpoints['reduction_4'].shape)  # torch.Size([1, 112, 14, 14])
-                >>> print(endpoints['reduction_5'].shape)  # torch.Size([1, 1280, 7, 7])
-        """
-        endpoints = dict()
-
-        # Stem
-        x = self.swish(self.norm0(self.conv_stem(inputs)))
-        prev_x = x
-
-        # Blocks
-        for idx, block in enumerate(self.blocks):
-            drop_connect_rate = self.global_params.drop_connect_rate
-            if drop_connect_rate:
-                drop_connect_rate *= float(idx) / len(self.blocks) # scale drop connect_rate
-            x = block(x, drop_connect_rate=drop_connect_rate)
-            if prev_x.size(2) > x.size(2):
-                endpoints['reduction_{}'.format(len(endpoints)+1)] = prev_x
-            prev_x = x
-
-        # Head
-        x = self.swish(self.norm1(self.conv_head(x)))
-        endpoints['reduction_{}'.format(len(endpoints)+1)] = x
-
-        return endpoints
-
-
     @classmethod
-    def from_name(cls, model_name, in_channels=3, **override_params):
-        """create an efficientnet model according to name.
-        Args:
-            model_name (str): Name for efficientnet.
-            in_channels (int): Input data's channel number.
-            override_params (other key word params):
-                Params to override model's global_params.
-                Optional key:
-                    'width_coefficient', 'depth_coefficient',
-                    'image_size', 'dropout_rate',
-                    'num_classes', 'batch_norm_momentum',
-                    'batch_norm_epsilon', 'drop_connect_rate',
-                    'depth_divisor', 'min_depth'
-        Returns:
-            An efficientnet model.
+    def from_name(cls, model_name: str, in_channels: int = 3):
         """
-        cls._check_model_name_is_valid(model_name)
-        blocks_args, global_params = get_model_params(model_name, override_params)
-        model = cls(blocks_args, global_params)
-        model._change_in_channels(in_channels)
-        return model
-
-
-    @classmethod
-    def get_image_size(cls, model_name):
-        """Get the input image size for a given efficientnet model.
-        Args:
-            model_name (str): Name for efficientnet.
-        Returns:
-            Input image size (resolution).
         """
-        cls._check_model_name_is_valid(model_name)
-        _, _, res, _ = efficientnet_params(model_name)
-        return res
+        assert model_name in VALID_MODELS, 'the model: {} not found'.format(model_name)
 
-    @classmethod
-    def _check_model_name_is_valid(cls, model_name):
-        """Validates model name.
-        Args:
-            model_name (str): Name for efficientnet.
-        Returns:
-            bool: Is a valid name or not.
-        """
-        if model_name not in VALID_MODELS:
-            raise ValueError('model_name should be one of: ' + ', '.join(VALID_MODELS))
+        args_dict = efficientnet_params(model_name)
+        blocks_args = blocks
+        global_params = GlobalParams()
+        for key, value in args_dict.items():
+            setattr(global_params, key, value)
 
-    def _change_in_channels(self, in_channels):
-        """Adjust model's first convolution layer to in_channels, if in_channels not equals 3.
-        Args:
-            in_channels (int): Input data's channel number.
-        """
-        if in_channels != 3:
-            Conv2d = get_same_padding_conv2d(image_size=self._global_params.image_size)
-            out_channels = round_filters(32, self._global_params)
-            self._conv_stem = Conv2d(in_channels, out_channels, kernel_size=3, stride=2, bias=False)
-'''
+        return cls(in_channels=in_channels,
+                   blocks_args=blocks_args,
+                   global_params=global_params,
+                   )

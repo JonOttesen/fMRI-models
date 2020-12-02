@@ -179,11 +179,12 @@ class Conv2dDynamicSamePadding(nn.Conv2d):
         ih, iw = x.size()[-2:]
         kh, kw = self.weight.size()[-2:]
         sh, sw = self.stride
-        oh, ow = math.ceil(ih / sh), math.ceil(iw / sw) # change the output size according to stride ! ! !
+        oh, ow = math.ceil(ih / sh), math.ceil(iw / sw) # change the output size according to stride!!!
         pad_h = max((oh - 1) * self.stride[0] + (kh - 1) * self.dilation[0] + 1 - ih, 0)
         pad_w = max((ow - 1) * self.stride[1] + (kw - 1) * self.dilation[1] + 1 - iw, 0)
         if pad_h > 0 or pad_w > 0:
-            x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
+            x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2,
+                          pad_h // 2, pad_h - pad_h // 2])
         return F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
 
 
@@ -201,7 +202,7 @@ class Conv2dStaticSamePadding(nn.Conv2d):
         # Calculate padding based on image size and save it
         assert image_size is not None
         ih, iw = (image_size, image_size) if isinstance(image_size, int) else image_size
-        kh, kw = self.weight.size()[-2:]
+        kh, kw = self.weight.size()[-2:]  # Extract kernel size
         sh, sw = self.stride
         oh, ow = math.ceil(ih / sh), math.ceil(iw / sw)
         pad_h = max((oh - 1) * self.stride[0] + (kh - 1) * self.dilation[0] + 1 - ih, 0)
@@ -251,7 +252,9 @@ class MaxPool2dDynamicSamePadding(nn.MaxPool2d):
         pad_h = max((oh - 1) * self.stride[0] + (kh - 1) * self.dilation[0] + 1 - ih, 0)
         pad_w = max((ow - 1) * self.stride[1] + (kw - 1) * self.dilation[1] + 1 - iw, 0)
         if pad_h > 0 or pad_w > 0:
-            x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2])
+            x = F.pad(x, [pad_w // 2, pad_w - pad_w // 2,
+                          pad_h // 2, pad_h - pad_h // 2])
+
         return F.max_pool2d(x, self.kernel_size, self.stride, self.padding,
                             self.dilation, self.ceil_mode, self.return_indices)
 

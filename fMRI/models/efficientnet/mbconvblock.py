@@ -72,7 +72,6 @@ class MBConvBlock(nn.Module):
             in_channels=out_channels, out_channels=out_channels, groups=out_channels,  # groups makes it depthwise
             kernel_size=kernel_size, stride=stride, bias=False)
 
-
         self.norm1 = self._norm_method(output=out_channels)
 
         image_size = calculate_output_image_size(image_size, stride)
