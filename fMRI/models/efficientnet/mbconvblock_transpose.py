@@ -20,10 +20,13 @@ from .utils import (
     drop_connect,
     calculate_output_image_size
 )
+from .transpose_pad import get_transpose2d
 from .conv_pad import get_same_padding_conv2d
 
+# from mbconvblock import MBConvBlock
 
-class MBConvBlock(nn.Module):
+
+class MBConvBlockTranspose(nn.Module):
     """Mobile Inverted Residual Bottleneck Block.
     Args:
         block_args (namedtuple): BlockArgs, defined in utils.py.
@@ -67,7 +70,19 @@ class MBConvBlock(nn.Module):
         # Depthwise convolution phase
         kernel_size = block_args.kernel_size
         stride = block_args.stride
-        Conv2d = get_same_padding_conv2d(image_size=image_size)
+        # Check if stride is larger than 1 somewhere
+
+        if isinstance(stride, list):
+            if stride[0] > 1 or stride[1] > 1:
+                Conv2d = get_transpose2d(image_size=image_size)
+            else:
+                Conv2d = get_same_padding_conv2d(image_size=image_size)
+        else:
+            if stride > 1:
+                Conv2d = get_transpose2d(image_size=image_size)
+            else:
+                Conv2d = get_same_padding_conv2d(image_size=image_size)
+
         self.depthwise_conv = Conv2d(
             in_channels=out_channels,
             out_channels=out_channels,

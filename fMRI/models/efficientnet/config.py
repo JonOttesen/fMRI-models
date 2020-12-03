@@ -90,7 +90,7 @@ class GlobalParams:
     batch_norm_epsilon: float = 0.001
     drop_connect_rate: float = 0.2
     depth_divisor: int = 8
-    include_top: bool = True
+    norm_method: str = 'instance_norm'  # Allowed. batch_norm, instance_norm, layer_norm
 
 
 def efficientnet_params(model_name):
