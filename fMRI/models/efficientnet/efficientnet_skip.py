@@ -14,7 +14,6 @@ from .utils import (
     calculate_output_image_size,
 )
 
-from .resnetblock import ResBlock
 
 from .swish import (
     Swish,
@@ -23,6 +22,8 @@ from .swish import (
 
 from .mbconvblock import MBConvBlock
 from .mbconvblock_transpose import MBConvBlockTranspose
+
+from .resnetblock import ResBlock
 
 from .config import (
     BlockArgs,
@@ -34,7 +35,7 @@ from .config import (
     )
 
 
-class EfficientNetUP(nn.Module):
+class EfficientNetUPSkip(nn.Module):
     """EfficientNet model.
        Most easily loaded with the .from_name or .from_pretrained methods.
     Args:
@@ -70,6 +71,7 @@ class EfficientNetUP(nn.Module):
         self.batch_norm_momentum = 1 - global_params.batch_norm_momentum
         self.batch_norm_epsilon = global_params.batch_norm_epsilon
 
+
         # Get stem static or dynamic convolution depending on image size
         image_size = global_params.image_size
         Conv2d = get_same_padding_conv2d(image_size=image_size)
@@ -81,23 +83,23 @@ class EfficientNetUP(nn.Module):
         self.conv1 = Conv2d(in_channels, out_channels, kernel_size=3, stride=1, bias=False)
         self.norm01 = self._norm_method(output=out_channels)
         self.conv2 = ResBlock(in_channels=out_channels, out_channels=out_channels)
-
-        self.conv_stem = Conv2d(out_channels, out_channels, kernel_size=3, stride=stem_stride, bias=False)
+        self.norm02 = self._norm_method(output=out_channels)
+        self.conv_stem = Conv2d(in_channels, out_channels, kernel_size=3, stride=stem_stride, bias=False)
         self.norm0 = self._norm_method(output=out_channels)
 
         # Transpose back up from stem
         self.stem_transpose = torch.nn.ConvTranspose2d(in_channels=out_channels,
-                                                       out_channels=64,
+                                                       out_channels=128,
                                                        kernel_size=2,
                                                        stride=stem_stride,
                                                        bias=False,
                                                        )
-
-        self.out_1 = ResBlock(in_channels=64, out_channels=64)
-        self.out_2 = ResBlock(in_channels=64, out_channels=64)
+        Conv2d = get_same_padding_conv2d(image_size=image_size)
+        self.out_1 = Conv2d(128, 128, kernel_size=3, stride=1, bias=False)
+        self.out_norm = self._norm_method(output=128)
 
         Conv2d = get_same_padding_conv2d(image_size=image_size)
-        self.out_last = Conv2d(64, 1, kernel_size=1, stride=1, bias=False)
+        self.out_last = Conv2d(128, 1, kernel_size=1, stride=1, bias=False)
 
 
         image_size = calculate_output_image_size(image_size, stride=stem_stride)
@@ -158,31 +160,37 @@ class EfficientNetUP(nn.Module):
         """
         # Stem
         x = self.swish(self.norm01(self.conv1(inputs)))
-        x = self.conv2(x)
+        x = self.swish(self.norm02(self.conv2(x)))
         x = self.swish(self.norm0(self.conv_stem(x)))
 
+        outs = list()
         # Blocks
+        counter = 0
         for idx, block in enumerate(self.blocks):
             drop_connect_rate = self.global_params.drop_connect_rate
             if drop_connect_rate:
                 drop_connect_rate *= float(idx) / len(self.blocks) # scale drop connect_rate
             x = block(x, drop_connect_rate=drop_connect_rate)
+            if self.concat[idx]:
+                outs.append(x)
 
         # Head
+        i = 1
         x = self.swish(self.norm1(self.conv_head(x)))
         x = self.swish(self.norm2(self.conv_head_up(x)))
-
         for idx, block in enumerate(self.up_blocks):
             drop_connect_rate = self.global_params.drop_connect_rate
             if drop_connect_rate:
                 drop_connect_rate *= float(idx) / len(self.up_blocks) # scale drop connect_rate
+            # x = torch.cat([x, outs[-idx - 1]], dim=1)
             x = block(x, drop_connect_rate=drop_connect_rate)
+            if self.concat[idx]:
+                print(x.shape, outs[-i].shape)
+                i += 1
 
         x = self.stem_transpose(x)
-        x = self.out_1(x)
-        x = self.out_2(x)
+        x = self.swish(self.out_norm(self.out_1(x)))
         x = self.out_last(x)
-
         return x
 
     def set_swish(self, memory_efficient=True):
