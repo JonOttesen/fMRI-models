@@ -40,7 +40,7 @@ class DatasetConverter(object):
 
         data = self.open_func(entry)
         channels, col, row = self.shape
-        volume = np.zeros((len(data), 2, channels, col, row), dtype=np.float32)
+        volume = np.zeros((len(data), 2, channels, col, row), dtype=data.dtype)
 
         for i, img in enumerate(data):
             train_img = self.train_transform(img)
