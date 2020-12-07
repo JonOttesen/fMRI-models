@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from .conv_pad import get_same_padding_conv2d
+from ..blocks.utils import get_same_padding_conv2d
 
 from .utils import (
     round_filters,
@@ -13,12 +13,11 @@ from .utils import (
     calculate_output_image_size,
 )
 
-from .swish import (
+from ..blocks import (
+    MBConvBlock,
     Swish,
     MemoryEfficientSwish,
     )
-
-from .mbconvblock import MBConvBlock
 
 from .config import (
     BlockArgs,
@@ -86,14 +85,36 @@ class EfficientNet(nn.Module):
             block_args.num_repeat = round_repeats(block_args.num_repeat, global_params)
 
             # The first block needs to take care of stride and filter size increase.
-            self.blocks.append(MBConvBlock(deepcopy(block_args), deepcopy(global_params), image_size=image_size))
+            self.blocks.append(MBConvBlock(
+                in_channels=block_args.input_filters,
+                out_channels=block_args.output_filters,
+                kernel_size=block_args.kernel_size,
+                stride=block_args.stride,
+                se_ratio=block_args.se_ratio,
+                expand_ratio=block_args.expand_ratio,
+                id_skip=block_args.id_skip,
+                norm_method=global_params.norm_method,
+                batch_norm_momentum=global_params.batch_norm_momentum,
+                batch_norm_epsilon=global_params.batch_norm_epsilon,
+                ))
             image_size = calculate_output_image_size(image_size, block_args.stride)
             if block_args.num_repeat > 1: # modify block_args to keep same output size
                 block_args.input_filters = block_args.output_filters
                 block_args.stride = 1
 
             for _ in range(block_args.num_repeat - 1):
-                self.blocks.append(MBConvBlock(block_args, global_params, image_size=image_size))
+                self.blocks.append(MBConvBlock(
+                    in_channels=block_args.input_filters,
+                    out_channels=block_args.output_filters,
+                    kernel_size=block_args.kernel_size,
+                    stride=block_args.stride,
+                    se_ratio=block_args.se_ratio,
+                    expand_ratio=block_args.expand_ratio,
+                    id_skip=block_args.id_skip,
+                    norm_method=global_params.norm_method,
+                    batch_norm_momentum=global_params.batch_norm_momentum,
+                    batch_norm_epsilon=global_params.batch_norm_epsilon,
+                    ))
 
         # Head
         in_channels = block_args.output_filters  # output of final block
@@ -103,11 +124,6 @@ class EfficientNet(nn.Module):
         self.norm1 = self._norm_method(output=out_channels)
 
         self.swish = MemoryEfficientSwish()
-        """# Final linear layer
-                                self.avg_pooling = nn.AdaptiveAvgPool2d(1)
-                                self.dropout = nn.Dropout(global_params.dropout_rate)
-                                self.fc = nn.Linear(out_channels, global_params.num_classes)
-                                self.swish = MemoryEfficientSwish()"""
 
     def forward(self, inputs):
         """EfficientNet's forward function.

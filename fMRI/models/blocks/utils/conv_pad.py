@@ -1,5 +1,7 @@
+from typing import Union, Tuple
 import math
 from functools import partial
+
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -40,8 +42,24 @@ class Conv2dDynamicSamePadding(nn.Conv2d):
     # If o equals i, i = floor((i+p-((k-1)*d+1))/s+1),
     # => p = (i-1)*s+((k-1)*d+1)-i
 
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, dilation=1, groups=1, bias=True):
-        super().__init__(in_channels, out_channels, kernel_size, stride, 0, dilation, groups, bias)
+    def __init__(self,
+                 in_channels: int,
+                 out_channels: int,
+                 kernel_size: Union[int, Tuple[int]],
+                 stride: Union[int, Tuple[int]] = 1,
+                 dilation: Union[int, Tuple[int]] = 1,
+                 groups: Union[int, Tuple[int]] = 1,
+                 bias: bool = True,
+                 ):
+        super().__init__(in_channels=in_channels,
+                         out_channels=out_channels,
+                         kernel_size=kernel_size,
+                         stride=stride,
+                         padding=0,
+                         dilation=dilation,
+                         groups=groups,
+                         bias=bias,
+                         )
         self.stride = self.stride if len(self.stride) == 2 else [self.stride[0]] * 2
 
     def forward(self, x):
@@ -64,8 +82,25 @@ class Conv2dStaticSamePadding(nn.Conv2d):
 
     # With the same calculation as Conv2dDynamicSamePadding
 
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, image_size=None, **kwargs):
-        super().__init__(in_channels, out_channels, kernel_size, stride, **kwargs)
+    def __init__(self,
+                 in_channels: int,
+                 out_channels: int,
+                 kernel_size: Union[int, Tuple[int]],
+                 stride: Union[int, Tuple[int]] = 1,
+                 dialiation: Union[int, Tuple[int]] = 1,
+                 groups: Union[int, Tuple[int]] = 1,
+                 bias: bool = True,
+                 image_size: Union[int, Tuple[int], None] = None,
+                 ):
+        super().__init__(in_channels=in_channels,
+                         out_channels=out_channels,
+                         kernel_size=kernel_size,
+                         stride=stride,
+                         padding=0,
+                         dilation=dialiation,
+                         groups=groups,
+                         bias=bias,
+                         )
         self.stride = self.stride if len(self.stride) == 2 else [self.stride[0]] * 2
 
         # Calculate padding based on image size and save it

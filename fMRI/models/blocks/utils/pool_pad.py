@@ -1,5 +1,7 @@
 import math
 from functools import partial
+from typing import Union, Tuple
+
 from torch import nn
 from torch.nn import functional as F
 
@@ -28,8 +30,21 @@ class MaxPool2dDynamicSamePadding(nn.MaxPool2d):
        The padding is operated in forward function by calculating dynamically.
     """
 
-    def __init__(self, kernel_size, stride, padding=0, dilation=1, return_indices=False, ceil_mode=False):
-        super().__init__(kernel_size, stride, padding, dilation, return_indices, ceil_mode)
+    def __init__(self,
+                 kernel_size: Union[int, Tuple[int]],
+                 stride: Union[int, Tuple[int]],
+                 padding: Union[int, Tuple[int]] = 0,
+                 dilation: Union[int, Tuple[int]] = 1,
+                 return_indices: bool = False,
+                 ceil_mode: bool = False,
+                 ):
+        super().__init__(kernel_size=kernel_size,
+                         stride=stride,
+                         padding=padding,
+                         dilation=dilation,
+                         return_indices=return_indices,
+                         ceil_mode=ceil_mode,
+                         )
         self.stride = [self.stride] * 2 if isinstance(self.stride, int) else self.stride
         self.kernel_size = [self.kernel_size] * 2 if isinstance(self.kernel_size, int) else self.kernel_size
         self.dilation = [self.dilation] * 2 if isinstance(self.dilation, int) else self.dilation
@@ -53,8 +68,22 @@ class MaxPool2dStaticSamePadding(nn.MaxPool2d):
        The padding mudule is calculated in construction function, then used in forward.
     """
 
-    def __init__(self, kernel_size, stride, image_size=None, **kwargs):
-        super().__init__(kernel_size, stride, **kwargs)
+    def __init__(self,
+                 kernel_size: Union[int, Tuple[int]],
+                 stride: Union[int, Tuple[int]],
+                 padding: Union[int, Tuple[int]] = 0,
+                 dilation: Union[int, Tuple[int]] = 1,
+                 return_indices: bool = False,
+                 ceil_mode: bool = False,
+                 image_size: Union[int, Tuple[int], None] = None,
+                 ):
+        super().__init__(kernel_size=kernel_size,
+                         stride=stride,
+                         padding=padding,
+                         dilation=dilation,
+                         return_indices=return_indices,
+                         ceil_mode=ceil_mode,
+                         )
         self.stride = [self.stride] * 2 if isinstance(self.stride, int) else self.stride
         self.kernel_size = [self.kernel_size] * 2 if isinstance(self.kernel_size, int) else self.kernel_size
         self.dilation = [self.dilation] * 2 if isinstance(self.dilation, int) else self.dilation
