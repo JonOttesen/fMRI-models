@@ -26,7 +26,7 @@ class ResUNet(nn.Module):
         self.activation = MemoryEfficientSwish()
         norm = nn.InstanceNorm2d
 
-        self.inc = BasicBlock(n_channels, n)
+        self.inc = BasicBlock(n_channels, n, norm_layer=norm, activation_func=self.activation)
 
         self.down1 = BasicBlock(n, n, stride=2, norm_layer=norm, activation_func=self.activation)
         self.conv1 = conv2d(n, 2*n, kernel_size=3)
