@@ -46,7 +46,6 @@ class MBConvBlock(nn.Module):
                  image_size: Union[int, Tuple[int]] = None,
                  ):
         super().__init__()
-        # se_ratio = 0
         self.batch_norm_momentum = 1 - batch_norm_momentum # pytorch's difference from tensorflow
         self.batch_norm_epsilon = batch_norm_epsilon
         self.norm_method = norm_method
