@@ -85,7 +85,6 @@ class MBConvBlock(nn.Module):
         image_size = calculate_output_image_size(image_size, stride)
         # Squeeze and Excitation layer, if desired
         if self.has_se:
-            num_squeezed_channels = max(1, int(self.in_channels * se_ratio))
             # ratio such that the number of squeezed channels are ratio(0.25)*in_channels from efficientnet architecture
             self.squeeze_excite = SqueezeExcitation(channels=self.mid_channels,
                                                     ratio=se_ratio*self.in_channels/self.mid_channels)

@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 
 from .utils import get_same_padding_conv2d, get_same_padding_maxPool2d
+from .squeeze_excitation import SqueezeExcitation
 
 class BasicBlock(nn.Module):
     """
@@ -60,6 +61,8 @@ class BasicBlock(nn.Module):
         else:
             self.activation = activation_func
 
+        self.se = SqueezeExcitation(channels=out_channels, ratio=1./16)
+
         self.downsample = downsample
         self.stride = stride
 
@@ -75,6 +78,7 @@ class BasicBlock(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(identity)
 
+        x = self.se(x)
         x += identity
 
         return x
