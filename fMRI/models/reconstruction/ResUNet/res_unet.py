@@ -30,27 +30,34 @@ class ResUNet(nn.Module):
 
         self.down1 = BasicBlock(n, n, stride=2, norm_layer=norm, activation_func=self.activation)
         self.conv1 = conv2d(n, 2*n, kernel_size=3)
+        self.bottle1 = Bottleneck(in_channels=2*n, mid_channels=2*n // 2, out_channels=2*n)
 
         self.down2 = BasicBlock(2*n, 2*n, stride=2, norm_layer=norm, activation_func=self.activation)
         self.conv2 = conv2d(2*n, 4*n, kernel_size=3)
+        self.bottle2 = Bottleneck(in_channels=4*n, mid_channels=4*n // 4, out_channels=4*n)
 
         self.down3 = BasicBlock(4*n, 4*n, stride=2, norm_layer=norm, activation_func=self.activation)
         self.conv3 = conv2d(4*n, 8*n, kernel_size=3)
+        self.bottle3 = Bottleneck(in_channels=8*n, mid_channels=8*n // 4, out_channels=8*n)
 
         self.down4 = BasicBlock(8*n, 8*n, stride=2, norm_layer=norm, activation_func=self.activation)
 
+        self.bottle_middle = Bottleneck(in_channels=8*n, mid_channels=8*n // 4, out_channels=8*n)
 
         self.up1 = BasicUpBlock(8*n, 8*n, stride=2, norm_layer=norm, activation_func=self.activation)
+        self.bottle_up1 = Bottleneck(in_channels=16*n, mid_channels=16*n // 4, out_channels=16*n)
         self.up_conv1 = conv2d(16*n, 4*n, kernel_size=3)
 
         self.up2 = BasicUpBlock(4*n, 4*n, stride=2, norm_layer=norm, activation_func=self.activation)
+        self.bottle_up2 = Bottleneck(in_channels=8*n, mid_channels=8*n // 4, out_channels=8*n)
         self.up_conv2 = conv2d(8*n, 2*n, kernel_size=3)
 
         self.up3 = BasicUpBlock(2*n, 2*n, stride=2, norm_layer=norm, activation_func=self.activation)
+        self.bottle_up3 = Bottleneck(in_channels=4*n, mid_channels=4*n // 4, out_channels=4*n)
         self.up_conv3 = conv2d(4*n, n, kernel_size=3)
 
         self.up4 = BasicUpBlock(n, n, stride=2, norm_layer=norm, activation_func=self.activation)
-        self.bottle = Bottleneck(in_channels=2*n,
+        self.final_bottle = Bottleneck(in_channels=2*n,
                                  mid_channels=n,
                                  out_channels=2*n,
                                  norm_layer=norm,
@@ -62,24 +69,37 @@ class ResUNet(nn.Module):
     def forward(self, x):
 
         x1 = self.inc(x)
+
         x2 = self.activation(self.conv1(self.down1(x1)))
+        x2 = self.bottle1(x2)
+
         x3 = self.activation(self.conv2(self.down2(x2)))
+        x3 = self.bottle2(x3)
+
         x4 = self.activation(self.conv3(self.down3(x3)))
+        x4 = self.bottle3(x4)
+
         x = self.down4(x4)
+        x = self.bottle_middle(x)
 
 
         x = self.up1(x)
         x = torch.cat([x, x4], dim=1)
+        x = self.bottle_up1(x)
         x = self.activation(self.up_conv1(x))
 
         x = self.up2(x)
-        x = self.activation(self.up_conv2(torch.cat([x, x3], dim=1)))
+        x = torch.cat([x, x3], dim=1)
+        x = self.bottle_up2(x)
+        x = self.activation(self.up_conv2(x))
 
         x = self.up3(x)
-        x = self.activation(self.up_conv3(torch.cat([x, x2], dim=1)))
+        x = torch.cat([x, x2], dim=1)
+        x = self.bottle_up3(x)
+        x = self.activation(self.up_conv3(x))
 
         x = self.up4(x)
         x = torch.cat([x, x1], dim=1)
-        x = self.bottle(x)
+        x = self.final_bottle(x)
 
         return self.outc(x)
