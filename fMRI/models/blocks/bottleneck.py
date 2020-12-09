@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 
 from ..blocks.utils import get_same_padding_conv2d, get_same_padding_maxPool2d
-
+from .squeeze_excitation import SqueezeExcitation
 
 class Bottleneck(nn.Module):
     """
@@ -56,6 +56,8 @@ class Bottleneck(nn.Module):
         else:
             self.activation = activation_func
 
+        self.se = SqueezeExcitation(channels=out_channels, ratio=1./16)
+
         self.downsample = downsample
         self.stride = stride
 
@@ -77,6 +79,7 @@ class Bottleneck(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
 
+        x = self.se(x)
         x += identity
 
         return x
