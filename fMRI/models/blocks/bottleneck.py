@@ -21,6 +21,7 @@ class Bottleneck(nn.Module):
                  stride: int = 1,
                  groups: int = 1,
                  dilation: int = 1,
+                 bias: bool = False,
                  downsample: Optional[nn.Module] = None,
                  norm_layer: Optional[Callable[..., nn.Module]] = None,
                  activation_func: Optional[Callable[..., nn.Module]] = None,
@@ -37,7 +38,12 @@ class Bottleneck(nn.Module):
         Conv2d = get_same_padding_conv2d(image_size=None)
         self.norm0 = norm_layer(in_channels)
 
-        self.conv1 = Conv2d(in_channels, mid_channels, kernel_size=1)
+        self.conv1 = Conv2d(in_channels=in_channels,
+                            out_channels=mid_channels,
+                            kernel_size=1,
+                            stride=1,
+                            bias=bias,
+                            )
         self.norm1 = norm_layer(mid_channels)
 
         self.conv2 = Conv2d(in_channels=mid_channels,
@@ -46,10 +52,13 @@ class Bottleneck(nn.Module):
                             stride=stride,
                             groups=groups,
                             dilation=dilation,
+                            bias=bias,
                             )
         self.norm2 = norm_layer(mid_channels)
 
-        self.conv3 = Conv2d(mid_channels, out_channels, kernel_size=1)
+        self.conv3 = Conv2d(in_channels=mid_channels,
+                            out_channels=out_channels,
+                            kernel_size=1)
 
         if activation_func is None:
             self.activation = nn.ReLU(inplace=True)
