@@ -74,6 +74,7 @@ class Trainer(BaseTrainer):
                     loss = self.loss_function(output, target)
                 self.scaler.scale(loss).backward()
                 self.scaler.step(self.optimizer)
+                self.scaler.update()
             else:
                 output = self.model(data)
                 loss = self.loss_function(output, target)

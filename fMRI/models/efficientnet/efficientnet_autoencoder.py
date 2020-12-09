@@ -19,6 +19,7 @@ from ..blocks import (
     MemoryEfficientSwish,
     BasicBlock,
     Bottleneck,
+    SqueezeExcitation,
     )
 
 from .config import (
@@ -72,7 +73,9 @@ class EfficientUNet(nn.Module):
 
         # Stem
         stem_stride = 2
-        out_channels = round_filters(32, global_params)  # number of output channels
+        in_channels_efficient = 32  # Default input channels for efficient net
+        out_channels = round_filters(in_channels_efficient, global_params)  # number of output channels
+
         self.conv_stem = Conv2d(in_channels, out_channels, kernel_size=3, stride=stem_stride, bias=False)
         self.norm0 = self._norm_method(output=out_channels)
 
