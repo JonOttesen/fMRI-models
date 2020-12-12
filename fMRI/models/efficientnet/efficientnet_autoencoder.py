@@ -87,44 +87,55 @@ class EfficientUNet(nn.Module):
                                       norm_layer=nn.InstanceNorm2d,
                                       activation_func=MemoryEfficientSwish())
 
+        self.basic_up1 = BasicUpBlock(in_channels=out_channels,
+                                      out_channels=out_channels,
+                                      bias=True,
+                                      stride=stem_stride,
+                                      norm_layer=nn.InstanceNorm2d,
+                                      activation_func=MemoryEfficientSwish(),
+                                      )
+
+        self.last_bottle = Bottleneck(in_channels=out_channels*2,
+                                      mid_channels=out_channels,
+                                      out_channels=out_channels*2,
+                                      bias=True,
+                                      norm_layer=nn.InstanceNorm2d,
+                                      activation_func=MemoryEfficientSwish(),
+                                      )
+        self.output = nn.Conv2d(in_channels=out_channels*2, out_channels=1, kernel_size=1)
+
         image_size = calculate_output_image_size(image_size, stride=stem_stride)
+        blocks_args_up = deepcopy(blocks_args)  # Create copy for the path upwards
 
+        self.down_block = list()
+        self.new_mbdown = list()
         # Build blocks
-        self.down_blocks = nn.ModuleList([])
+        self.down_mbblocks = nn.ModuleList([])
         self.downs = nn.ModuleList([])
-        up_blocks = list()  # nn.ModuleList cannot be reversed once it's created
-        ups = list()
 
-        self.down_and_up = list()  # True where the input is downsampled
-        self.new_blocks = list()  # True when new blocks are initiated
-        counter = 0
         for block_args in blocks_args:
             # Update block input and output filters based on depth multiplier.
             block_args.input_filters = round_filters(block_args.input_filters, global_params)
             block_args.output_filters = round_filters(block_args.output_filters, global_params)
             block_args.num_repeat = round_repeats(block_args.num_repeat, global_params)
 
-            self.new_blocks.append(True)  # New block from blocks_args is created
+
             stride = block_args.stride if isinstance(block_args.stride, (list, tuple)) else [block_args.stride]
             if any([True if s > 1 else False for s in stride]):
                 self.downs.append(BasicBlock(in_channels=block_args.input_filters,
                                              out_channels=block_args.input_filters,
                                              bias=True,
                                              stride=block_args.stride,
-                                             norm_layer=nn.InstanceNorm2d))
-                ups.append(BasicUpBlock(in_channels=block_args.input_filters,
-                                        out_channels=block_args.input_filters,
-                                        bias=True,
-                                        stride=max(stride),
-                                        norm_layer=nn.InstanceNorm2d))
+                                             norm_layer=nn.InstanceNorm2d,
+                                             activation_func=MemoryEfficientSwish(),
+                                             ))
                 block_args.stride = 1
-                self.down_and_up.append(True)
+                self.down_block.append(True)
             else:
-                self.down_and_up.append(False)
-
+                self.down_block.append(False)
 
             # The first block needs to take care of stride and filter size increase.
-            self.down_blocks.append(MBConvBlock(
+            self.down_mbblocks.append(MBConvBlock(
                 in_channels=block_args.input_filters,
                 out_channels=block_args.output_filters,
                 kernel_size=block_args.kernel_size,
@@ -136,32 +147,18 @@ class EfficientUNet(nn.Module):
                 batch_norm_momentum=global_params.batch_norm_momentum,
                 batch_norm_epsilon=global_params.batch_norm_epsilon,
                 ))
-
-            factor = 2 if block_args.num_repeat == 1 else 1  # Accept the concat version of the input
-
-            up_blocks.append(MBConvBlock(
-                in_channels=block_args.output_filters*factor,
-                out_channels=block_args.input_filters,
-                kernel_size=block_args.kernel_size,
-                stride=block_args.stride,
-                se_ratio=block_args.se_ratio,
-                expand_ratio=block_args.expand_ratio,
-                id_skip=block_args.id_skip,
-                norm_method=global_params.norm_method,
-                batch_norm_momentum=global_params.batch_norm_momentum,
-                batch_norm_epsilon=global_params.batch_norm_epsilon,
-                ))
+            self.new_mbdown.append(True)
 
             image_size = calculate_output_image_size(image_size, block_args.stride)
             if block_args.num_repeat > 1: # modify block_args to keep same output size
-                block_args.input_filters = block_args.output_filters
                 block_args.stride = 1
 
             for block_num in range(block_args.num_repeat - 1):
-                self.new_blocks.append(False)  # Looping over the same block
-                self.down_and_up.append(False)  # Don't downsample in the loop
-                self.down_blocks.append(MBConvBlock(
-                    in_channels=block_args.input_filters,
+                self.down_block.append(False)
+                self.new_mbdown.append(False)
+
+                self.down_mbblocks.append(MBConvBlock(
+                    in_channels=block_args.output_filters,
                     out_channels=block_args.output_filters,
                     kernel_size=block_args.kernel_size,
                     stride=block_args.stride,
@@ -172,25 +169,6 @@ class EfficientUNet(nn.Module):
                     batch_norm_momentum=global_params.batch_norm_momentum,
                     batch_norm_epsilon=global_params.batch_norm_epsilon,
                     ))
-
-                factor = 2 if block_num == block_args.num_repeat - 2 else 1  # Accept the concat version of the input
-                up_blocks.append(MBConvBlock(
-                    in_channels=block_args.output_filters*factor,
-                    out_channels=block_args.output_filters,
-                    kernel_size=block_args.kernel_size,
-                    stride=block_args.stride,
-                    se_ratio=block_args.se_ratio,
-                    expand_ratio=block_args.expand_ratio,
-                    id_skip=block_args.id_skip,
-                    norm_method=global_params.norm_method,
-                    batch_norm_momentum=global_params.batch_norm_momentum,
-                    batch_norm_epsilon=global_params.batch_norm_epsilon,
-                    ))
-
-        ups.reverse()
-        up_blocks.reverse()
-        self.ups = nn.ModuleList(ups)
-        self.up_blocks = nn.ModuleList(up_blocks)
 
         # Head
         in_channels = block_args.output_filters  # output of final block
@@ -203,6 +181,73 @@ class EfficientUNet(nn.Module):
 
         self.swish = MemoryEfficientSwish()
 
+        self.up_block = list()
+        self.new_mbup = list()
+
+        # Build blocks
+        self.up_mbblocks = nn.ModuleList([])
+        self.ups = nn.ModuleList([])
+
+        blocks_args_up.reverse()
+        for j, block_args in enumerate(blocks_args_up):
+            # Update block input and output filters based on depth multiplier.
+            block_args.input_filters = round_filters(block_args.input_filters, global_params)
+            block_args.output_filters = round_filters(block_args.output_filters, global_params)
+            block_args.num_repeat = round_repeats(block_args.num_repeat, global_params)
+
+            up_block = list()
+
+            stride = block_args.stride if isinstance(block_args.stride, (list, tuple)) else [block_args.stride]
+            if any([True if s > 1 else False for s in stride]):
+                self.ups.append(BasicUpBlock(in_channels=block_args.input_filters,
+                                             out_channels=block_args.input_filters,
+                                             bias=True,
+                                             stride=max(stride),
+                                             norm_layer=nn.InstanceNorm2d,
+                                             activation_func=MemoryEfficientSwish(),
+                                             ))
+                block_args.stride = 1
+                up_block.append(True)
+            else:
+                up_block.append(False)
+
+            self.new_mbup.append(True)
+            self.up_mbblocks.append(MBConvBlock(
+                in_channels=block_args.output_filters*2,
+                out_channels=block_args.input_filters if block_args.num_repeat == 1 else block_args.output_filters,
+                kernel_size=block_args.kernel_size,
+                stride=block_args.stride,
+                se_ratio=block_args.se_ratio,
+                expand_ratio=block_args.expand_ratio,
+                id_skip=block_args.id_skip,
+                norm_method=global_params.norm_method,
+                batch_norm_momentum=global_params.batch_norm_momentum,
+                batch_norm_epsilon=global_params.batch_norm_epsilon,
+                ))
+
+            image_size = calculate_output_image_size(image_size, block_args.stride)
+            if block_args.num_repeat > 1: # modify block_args to keep same output size
+                block_args.stride = 1
+
+            for i in range(block_args.num_repeat - 1):
+                up_block.append(False)
+                self.new_mbup.append(False)
+
+                self.up_mbblocks.append(MBConvBlock(
+                    in_channels=block_args.output_filters,
+                    out_channels=block_args.output_filters if i < block_args.num_repeat - 2 else block_args.input_filters,
+                    kernel_size=block_args.kernel_size,
+                    stride=block_args.stride,
+                    se_ratio=block_args.se_ratio,
+                    expand_ratio=block_args.expand_ratio,
+                    id_skip=block_args.id_skip,
+                    norm_method=global_params.norm_method,
+                    batch_norm_momentum=global_params.batch_norm_momentum,
+                    batch_norm_epsilon=global_params.batch_norm_epsilon,
+                    ))
+            up_block.reverse()
+            self.up_block.extend(up_block)
+
     def forward(self, inputs):
         """EfficientNet's forward function.
            Calls extract_features to extract features, applies final linear layer, and returns logits.
@@ -213,43 +258,48 @@ class EfficientUNet(nn.Module):
         """
         # Stem
         x = self.swish(self.norm0(self.conv_stem(inputs)))
+        long_skips = list()
+        long_skips.append(x)
         x = self.basic_down1(x)
 
         # Blocks
         counter = 0
-        long_skips = list()
-        for idx, block in enumerate(self.down_blocks):
-            if self.new_blocks[idx]:
+        for idx, block in enumerate(self.down_mbblocks):
+            if self.new_mbdown[idx] and idx != 0:  # The very first new block is a bit finnicky
                 long_skips.append(x)
-            if self.down_and_up[idx]:
+            if self.down_block[idx]:
                 x = self.downs[counter](x)
                 counter += 1
 
             drop_connect_rate = self.global_params.drop_connect_rate
             if drop_connect_rate:
-                drop_connect_rate *= float(idx) / len(self.down_blocks) # scale drop connect_rate
+                drop_connect_rate *= float(idx) / len(self.down_mbblocks) # scale drop connect_rate
             x = block(x, drop_connect_rate=drop_connect_rate)
 
         long_skips.append(x)  # Add the last output from the last block
-        self.down_and_up.reverse()
-
         # Head
         x = self.swish(self.norm1(self.down_head(x)))
         x = self.swish(self.norm2(self.up_head(x)))
+
         counter = 0
-        for idx, block in enumerate(self.up_blocks):
-            if self.down_and_up[idx]:
-                x = self.ups[counter](x)
-                counter += 1
-            if self.new_blocks[idx]:
+        for idx, block in enumerate(self.up_mbblocks):
+            if self.new_mbup[idx]:
                 x = torch.cat([x, long_skips[-1]], dim=1)
                 del long_skips[-1]
-
             drop_connect_rate = self.global_params.drop_connect_rate
             if drop_connect_rate:
-                drop_connect_rate *= float(len(self.up_blocks) - idx - 1) / len(self.up_blocks) # scale drop connect_rate
-            print(x.shape)
+                drop_connect_rate *= float(len(self.up_mbblocks) - idx - 1) / len(self.up_mbblocks) # scale drop connect_rate
             x = block(x, drop_connect_rate=drop_connect_rate)
+
+            if self.up_block[idx]:
+                x = self.ups[counter](x)
+                counter += 1
+        x = self.basic_up1(x)
+        x = torch.cat([x, long_skips[-1]], dim=1)
+        del long_skips[-1]
+
+        x = self.last_bottle(x)
+        x = self.output(x)
 
         return x
 

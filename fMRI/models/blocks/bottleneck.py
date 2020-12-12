@@ -35,6 +35,9 @@ class Bottleneck(nn.Module):
             downsample = get_same_padding_maxPool2d()
             downsample = downsample(kernel_size=stride, stride=stride)
 
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+
         Conv2d = get_same_padding_conv2d(image_size=None)
         self.norm0 = norm_layer(in_channels)
 
@@ -89,6 +92,7 @@ class Bottleneck(nn.Module):
             identity = self.downsample(x)
 
         x = self.se(x)
-        x += identity
+        if self.in_channels == self.out_channels:
+            x += identity
 
         return x
