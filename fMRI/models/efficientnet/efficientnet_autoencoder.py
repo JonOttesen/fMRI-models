@@ -77,8 +77,13 @@ class EfficientUNet(nn.Module):
         in_channels_efficient = 32  # Default input channels for efficient net
         out_channels = round_filters(in_channels_efficient, global_params)  # number of output channels
 
-        self.conv_stem = Conv2d(in_channels, out_channels, kernel_size=3, stride=1, bias=True)  # Check this with stride=2
-        self.norm0 = self._norm_method(output=out_channels)
+        self.conv_stem = BasicBlock(in_channels=in_channels,
+                                    out_channels=out_channels,
+                                    stride=1,
+                                    bias=1,
+                                    norm_layer=nn.InstanceNorm2d,
+                                    activation_func=MemoryEfficientSwish(),
+                                    )
 
         self.basic_down1 = BasicBlock(in_channels=out_channels,
                                       out_channels=out_channels,
@@ -257,7 +262,7 @@ class EfficientUNet(nn.Module):
             Output of this model after processing.
         """
         # Stem
-        x = self.swish(self.norm0(self.conv_stem(inputs)))
+        x = self.conv_stem(inputs)
         long_skips = list()
         long_skips.append(x)
         x = self.basic_down1(x)
