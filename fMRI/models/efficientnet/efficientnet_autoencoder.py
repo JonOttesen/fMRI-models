@@ -57,7 +57,6 @@ class EfficientUNet(nn.Module):
                  blocks_args: List[BlockArgs],
                  global_params: GlobalParams):
         super().__init__()
-        global_params.dropout_rate = 0
 
         assert isinstance(blocks_args, list), 'blocks_args should be a list'
         assert len(blocks_args) > 0, 'block args must be greater than 0'
