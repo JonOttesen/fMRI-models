@@ -20,6 +20,7 @@ class BasicBlock(nn.Module):
                  groups: int = 1,
                  dilation: int = 1,
                  bias: bool = False,
+                 ratio: float = 1./16,
                  downsample: Optional[nn.Module] = None,
                  norm_layer: Optional[Callable[..., nn.Module]] = None,
                  activation_func: Optional[Callable[..., nn.Module]] = None,
@@ -61,7 +62,7 @@ class BasicBlock(nn.Module):
         else:
             self.activation = activation_func
 
-        self.se = SqueezeExcitation(channels=out_channels, ratio=1./16)
+        self.se = SqueezeExcitation(channels=out_channels, ratio=ratio)
 
         self.downsample = downsample
         self.stride = stride
