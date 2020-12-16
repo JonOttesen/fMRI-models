@@ -14,7 +14,7 @@ class PSNR(torch.nn.Module):
             X (torch.Tensor): prediction shape (batch, C, H, W)
             Y (torch.Tensor): ground truth shape (batch, C, H, W)
         returns:
-            torch.Tensor: The NMSE for the input with shape (1, ) if mean else (batch, )
+            torch.Tensor: The PSNR for the input with shape (1, ) if mean else (batch, )
         """
         batch_size = X.shape[0]
         assert X.shape == Y.shape
@@ -25,7 +25,7 @@ class PSNR(torch.nn.Module):
         mse = torch.mean((pred - gt) ** 2, dim=1)
 
         # https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
-        psnr = 20.0*torch.log10(pred.max(dim=1)[0]) - 10.0*torch.log10(mse)
+        psnr = 20.0*torch.log10(pred.max(dim=1)[0]-pred.min(dim=1)[0]) - 10.0*torch.log10(mse)
 
         if self.reduction == 'mean':
             return torch.mean(psnr)
