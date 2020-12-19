@@ -36,11 +36,14 @@ class DatasetConverter(object):
         self.shape = shape
         self.open_func = open_func
 
-    def to_array(self, entry):
+    def to_array(self, entry, dtype=None):
 
         data = self.open_func(entry)
         channels, col, row = self.shape
-        volume = np.zeros((len(data), 2, channels, col, row), dtype=data.dtype)
+        if dtype is not None:
+            volume = np.zeros((len(data), 2, channels, col, row), dtype=dtype)
+        else:
+            volume = np.zeros((len(data), 2, channels, col, row), dtype=data.dtype)
 
         for i, img in enumerate(data):
             train_img = self.train_transform(img)
@@ -58,14 +61,14 @@ class DatasetConverter(object):
 
         return volume
 
-    def to_hdf5(self, save_folder: Union[str, Path], keyword: str = 'kspace'):
+    def to_hdf5(self, save_folder: Union[str, Path], keyword: str = 'kspace', dtype=None):
 
         save_folder = Path(save_folder)
         save_folder.mkdir(parents=True, exist_ok=True)
 
         new_container = deepcopy(self.container)
         for entry, new_entry in tqdm(zip(self.container, new_container), total=len(self.container)):
-            volume = self.to_array(entry=entry)
+            volume = self.to_array(entry=entry, dtype=dtype)
 
             filename = Path(entry.image_path).stem  # Not really necessary with stem here, however it is more explicit
             save_path = save_folder / Path(filename + '.h5')
