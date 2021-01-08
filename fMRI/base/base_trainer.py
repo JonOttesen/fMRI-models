@@ -112,12 +112,16 @@ class BaseTrainer:
         """
         # Use iterations or epochs
         epochs = self.iterations if self.iterative else self.epochs
+        min_val_loss = None  # Used to save a new best performing epoch/iteration
 
         for epoch in range(self.start_epoch, epochs + 1):
             epoch_start_time = time.time()
             loss_dict = self._train_epoch(epoch)
             val_dict = self._valid_epoch(epoch)
             epoch_end_time = time.time() - epoch_start_time
+
+            val_loss = np.mean(np.array(val_dict['loss']))
+            min_val_loss = val_loss if min_val_loss is None else min_val_loss  # Set equal to the first val_loss
 
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
@@ -140,7 +144,10 @@ class BaseTrainer:
                     self.logger.info('Mean validation {}: {}'.format(str(key), np.mean(valid)))
 
             if epoch % self.save_period == 0:
-                self.save_checkpoint(epoch)
+                self.save_checkpoint(epoch, best=False)
+            if val_loss > min_val_loss:
+                min_val_loss = val_loss
+                self.save_checkpoint(epoch, best=True)
 
             self.logger.info('-----------------------------------')
         self.metric.write_to_file(path=self.checkpoint_dir / Path('statistics.json'))  # Save metrics at the end
@@ -175,11 +182,12 @@ class BaseTrainer:
 
         return device, list_ids
 
-    def save_checkpoint(self, epoch):
+    def save_checkpoint(self, epoch, best: bool = False):
         """
         Saving checkpoints at the given moment
         Args:
             epoch (int), the current epoch of the training
+            bool (bool), save as best epoch so far, different naming convention
         """
         arch = type(self.model).__name__
         if self.lr_scheduler is not None:  # In case of None
@@ -197,7 +205,11 @@ class BaseTrainer:
             'loss_func': str(self.loss_function),
             }
 
-        save_path = Path(self.checkpoint_dir) / Path('epoch_' + str(epoch))
+        if best:  # Save best case with different naming convention
+            save_path = Path(self.checkpoint_dir) / Path('best_with_epoch' + str(epoch))
+        else:
+            save_path = Path(self.checkpoint_dir) / Path('epoch_' + str(epoch))
+
         save_path.mkdir(parents=True, exist_ok=True)
 
         statics_save_path = save_path / Path('statistics.json')
