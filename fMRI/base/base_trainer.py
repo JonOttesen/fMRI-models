@@ -70,6 +70,8 @@ class BaseTrainer:
         self.checkpoint_dir = Path(trainer_cfg['save_dir']) / Path(datetime.today().strftime('%Y-%m-%d'))
         self.metric = MetricTracker(config=config)
 
+        self.min_validation_loss = None  #  Minimum validation loss achieved
+
     @abstractmethod
     def _train_epoch(self, epoch):
         """
@@ -112,7 +114,6 @@ class BaseTrainer:
         """
         # Use iterations or epochs
         epochs = self.iterations if self.iterative else self.epochs
-        min_val_loss = None  # Used to save a new best performing epoch/iteration
 
         for epoch in range(self.start_epoch, epochs + 1):
             epoch_start_time = time.time()
@@ -121,7 +122,8 @@ class BaseTrainer:
             epoch_end_time = time.time() - epoch_start_time
 
             val_loss = np.mean(np.array(val_dict['loss']))
-            min_val_loss = val_loss if min_val_loss is None else min_val_loss  # Set equal to the first val_loss
+            self.min_validation_loss = self.min_validation_loss if self.min_validation_loss is None\
+                                       else self.min_validation_loss  # Set equal to the first val_loss
 
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
@@ -145,8 +147,8 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self.save_checkpoint(epoch, best=False)
-            if val_loss > min_val_loss:
-                min_val_loss = val_loss
+            if val_loss > self.min_validation_loss:
+                self.min_validation_loss = val_loss
                 self.save_checkpoint(epoch, best=True)
 
             self.logger.info('-----------------------------------')
@@ -280,4 +282,9 @@ class BaseTrainer:
         self.logger.info('Checkpoint loaded. Resume training from epoch {}'.format(self.start_epoch))
 
         self.checkpoint_dir = Path(resume_metric).parent.parent  # Ensuring the same main folder after resuming
+
+        for key, value in self.metric[self.metric.VALIDATION_KEY].items():
+            loss = np.mean(np.array(value['loss']))
+            self.min_validation_loss = loss
+            print(loss)
 

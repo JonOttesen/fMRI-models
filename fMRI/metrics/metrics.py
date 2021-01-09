@@ -32,6 +32,9 @@ class MetricTracker(object):
         self.results[self.CONFIG_KEY] = config
         self.iterative = bool(config['trainer']['iterative'])
 
+    def __getitem__(self, key):
+        return self.results[key]
+
     def resume(self, resume_path: Union[str, Path]):
         """
         Resumes MetricTracker from previous state
