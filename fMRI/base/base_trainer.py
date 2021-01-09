@@ -1,4 +1,5 @@
 import time
+import sys
 
 from typing import List, Callable, Union, Dict
 from abc import abstractmethod
@@ -70,7 +71,7 @@ class BaseTrainer:
         self.checkpoint_dir = Path(trainer_cfg['save_dir']) / Path(datetime.today().strftime('%Y-%m-%d'))
         self.metric = MetricTracker(config=config)
 
-        self.min_validation_loss = None  #  Minimum validation loss achieved
+        self.min_validation_loss = sys.float_info.max  # Minimum validation loss achieved, starting with the larges possible number
 
     @abstractmethod
     def _train_epoch(self, epoch):
@@ -122,8 +123,6 @@ class BaseTrainer:
             epoch_end_time = time.time() - epoch_start_time
 
             val_loss = np.mean(np.array(val_dict['loss']))
-            self.min_validation_loss = self.min_validation_loss if self.min_validation_loss is None\
-                                       else self.min_validation_loss  # Set equal to the first val_loss
 
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
@@ -147,7 +146,7 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self.save_checkpoint(epoch, best=False)
-            if val_loss > self.min_validation_loss:
+            if val_loss < self.min_validation_loss:
                 self.min_validation_loss = val_loss
                 self.save_checkpoint(epoch, best=True)
 
@@ -285,6 +284,4 @@ class BaseTrainer:
 
         for key, value in self.metric[self.metric.VALIDATION_KEY].items():
             loss = np.mean(np.array(value['loss']))
-            self.min_validation_loss = loss
-            print(loss)
-
+            self.min_validation_loss = min(self.min_validation_loss, loss)
