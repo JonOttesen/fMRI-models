@@ -207,7 +207,7 @@ class BaseTrainer:
             }
 
         if best:  # Save best case with different naming convention
-            save_path = Path(self.checkpoint_dir) / Path('best_with_epoch' + str(epoch))
+            save_path = Path(self.checkpoint_dir) / Path('best_validation')
         else:
             save_path = Path(self.checkpoint_dir) / Path('epoch_' + str(epoch))
 
