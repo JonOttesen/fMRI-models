@@ -208,13 +208,14 @@ class BaseTrainer:
 
         if best:  # Save best case with different naming convention
             save_path = Path(self.checkpoint_dir) / Path('best_validation')
+            filename = str(save_path / 'checkpoint-best.pth')
         else:
             save_path = Path(self.checkpoint_dir) / Path('epoch_' + str(epoch))
+            filename = str(save_path / 'checkpoint-epoch{}.pth'.format(epoch))
 
         save_path.mkdir(parents=True, exist_ok=True)
 
         statics_save_path = save_path / Path('statistics.json')
-        filename = str(save_path / 'checkpoint-epoch{}.pth'.format(epoch))
 
         self.metric.write_to_file(path=statics_save_path)  # Save for every checkpoint in case of crash
         torch.save(state, filename)
