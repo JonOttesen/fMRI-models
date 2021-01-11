@@ -45,7 +45,7 @@ class KspaceMask:
             'equidistant': self.equidistant,
             'random': self.random_uniform,
             }
-        self.masks = None if seed == None else {}  # Dict for storing prior created masks
+        self.masks = None if seed is None else {}  # Dict for storing prior created masks
 
     @property
     def mask_type(self):
@@ -86,9 +86,7 @@ class KspaceMask:
             mask = np.zeros(lines)
             indices = np.arange(lines)
 
-            center_frac = self.center_fraction
-
-            low_freq = int(round(center_frac/2*lines))
+            low_freq = int(round(self.center_fraction/2*lines))
 
             k_0 = int(lines/2)
             high_freq = int(lines/self.acceleration) - low_freq*2
@@ -113,26 +111,27 @@ class KspaceMask:
 
         with temp_seed(self.seed):
             mask = np.zeros(lines)
+            indices = np.arange(lines)
 
-            center_frac = self.center_fraction
-
-            low_freq = int(round(center_frac/2*lines))  # Low freq lines on each side of origin
+            low_freq = int(round(self.center_fraction/2*lines))  # Low freq lines on each side of origin
 
             k_0 = int(lines/2)
             high_freq = int(lines/self.acceleration) - low_freq*2
 
             mask[k_0 - low_freq:k_0 + low_freq] = 1
+            indices = indices[mask != 1]
 
-            step = (k_0 - low_freq)/(high_freq/2)
+            step = (lines - low_freq*2)/high_freq
+            start = np.random.randint(0, int(step))
+            steps = start + np.round(step*np.arange(high_freq))
+            steps = steps.astype(np.int16)
 
-            # Calculating the indices on the left and right side of k-space origin
-            left_low_freq = (np.random.uniform(0, self.acceleration - 1)
-                            + np.arange(int(high_freq/2))*step).astype(dtype=np.int16)
-            right_low_freq = (k_0 + low_freq + np.random.uniform(1, self.acceleration)\
-                             + np.arange(int(high_freq/2))*step).astype(dtype=np.int16)
-
-            # Fills the mask with the linear filter
-            mask[left_low_freq] = 1
-            mask[right_low_freq] = 1
+            mask[indices[steps]] = 1
 
         return torch.from_numpy(mask).bool()
+
+if __name__=='__main__':
+    mask = KspaceMask(acceleration=4, seed=None, mask_type='equidistant')
+    for i in range(10):
+        mask(320).numpy()
+
