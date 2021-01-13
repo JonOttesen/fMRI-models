@@ -119,6 +119,9 @@ class KspaceMask:
             high_freq = int(lines/self.acceleration) - low_freq*2
 
             mask[k_0 - low_freq:k_0 + low_freq] = 1
+            if high_freq == 0:
+                return mask
+
             indices = indices[mask != 1]
 
             step = (lines - low_freq*2)/high_freq
