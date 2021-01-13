@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Dict
 import h5py
 import nibabel as nib
 
@@ -45,6 +45,7 @@ class DatasetEntry(object):
         self.post_contrast = post_contrast
         self.multicoil = multicoil
         self.shape = shape
+        self.scores = dict()
 
     def __getitem__(self, key):
         return self.to_dict()[key]
@@ -72,6 +73,16 @@ class DatasetEntry(object):
 
     def open_nifti(self, image_path):
         return nib.load(image_path)
+
+    def add_scores(self, img_slice: int, scores: Dict[str, float]):
+        assert self.shape is not None, 'shape must be added for score support'
+        assert isinstance(img_slice, int) and isinstance(scores, dict),\
+            'img_slice must be int, and scores must be dict'
+        assert img_slice < self.shape[0], 'img_slice cannot be larger than maximum slice number'
+
+        if img_slice in self.scores.keys():
+            self.logger.info('there already exists scores for this slice, they are overwritten')
+        self.scores[img_slice] = scores
 
     def add_shape(self, open_func=None, shape=None, keyword='kspace'):
         if isinstance(shape, tuple):
@@ -103,7 +114,8 @@ class DatasetEntry(object):
                 'pre_contrast': self.pre_contrast,
                 'post_contrast': self.post_contrast,
                 'multicoil': self.multicoil,
-                'shape': self.shape}
+                'shape': self.shape,
+                'scores': self.scores}
 
     def from_dict(self, in_dict: dict):
         """
@@ -121,5 +133,6 @@ class DatasetEntry(object):
             self.post_contrast = in_dict['post_contrast']
             self.multicoil = in_dict['multicoil']
             self.shape = in_dict['shape']
+            self.scores = in_dict['scores']
 
         return self
