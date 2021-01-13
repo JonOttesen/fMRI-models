@@ -77,8 +77,8 @@ class SSIM(nn.Module):
 
             # This is originally X not Y, but I will try using the Y instead
             batch_size = Y.shape[0]
-            X_flattend = Y.view(batch_size, -1)
-            data_range = Y_flattend.max(dim=1)[0] - X_flattend.min(dim=1)[0]
+            Y_flattend = Y.view(batch_size, -1)
+            data_range = Y_flattend.max(dim=1)[0] - Y_flattend.min(dim=1)[0]
             for i in range(len(Y.shape) - 1):
                 data_range = torch.unsqueeze(data_range, dim=-1)
 
