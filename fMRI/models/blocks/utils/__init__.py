@@ -6,3 +6,6 @@ from .utils import (
 
 from .conv_pad import get_same_padding_conv2d
 from .pool_pad import get_same_padding_maxPool2d
+
+from .conv_pad import Conv2dStaticSamePadding, Conv2dDynamicSamePadding
+from .pool_pad import MaxPool2dStaticSamePadding
