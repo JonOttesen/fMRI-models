@@ -41,7 +41,11 @@ class BaseTrainer:
         self.logger = get_logger(name=__name__)
 
         # setup GPU device if available, move model into configured device
-        self.device, device_ids = self.prepare_device(config['n_gpu'])
+        if device is None:
+            self.device, device_ids = self.prepare_device(config['n_gpu'])
+        else:
+            self.device = torch.device(device)
+            device_ids = list()
 
         self.model = model.to(self.device)
         self.lr_scheduler = lr_scheduler
