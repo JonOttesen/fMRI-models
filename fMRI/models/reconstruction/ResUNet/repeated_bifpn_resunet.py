@@ -77,7 +77,7 @@ class ResUNet(nn.Module):
                                         bias=bias,
                                         ) for i in range(n_repeats)])
 
-
+        # BiFPN layer as suggested by EfficientDet by tensorflow
         self.bifpns = nn.ModuleList([
             BiFPN(channels=[n, 2*n, 4*n, 8*n, 8*n], layers=5)
             for i in range(BiFPN_layers)])

@@ -36,12 +36,13 @@ class SeparableConvBlock(nn.Module):
                                                        kernel_size=3,
                                                        stride=1,
                                                        groups=in_channels,
-                                                       bias=True,
+                                                       bias=False,
                                                        )
-        self.pointwise_conv = Conv2dDynamicSamePadding(in_channels=in_channels,
+        self.pointwise_conv = Conv2dDynamicSamePadding(in_channels=out_channels,
                                                        out_channels=out_channels,
                                                        kernel_size=1,
                                                        stride=1,
+                                                       bias=True
                                                        )
 
         self.norm = norm
@@ -108,27 +109,32 @@ class BiFPN(nn.Module):
             ])
 
         ### Important, both of these have the higher spatial dimensions first
+        ### The instance norm and activation function are original to me in this architecture
 
         # The upsampling, only with transpose convolutions to allow different number of channels
         # This is the four arrows going downwards(i.e higher spatial dimension) in the image figure
-        self.up_layers = nn.ModuleList([
+        self.up_layers = nn.ModuleList([nn.Sequential(
             nn.ConvTranspose2d(in_channels=channels[i + 1],
                                out_channels=channels[i],
                                kernel_size=2,
                                stride=2,
-                               bias=True,
-                               )
+                               bias=True),
+            nn.InstanceNorm2d(channels[i]),
+            MemoryEfficientSwish() if not onnx_export else Swish(),
+            )
             for i in range(len(channels) - 1)])
 
         # The downsampling, only with convolutional layers to allow different number of channels
         # This is the four arrows going upwards in the figure (i.e lower spatial dimension) on the last column
-        self.down_layers = nn.ModuleList([
+        self.down_layers = nn.ModuleList([nn.Sequential(
             Conv2dDynamicSamePadding(in_channels=channels[i],
                                      out_channels=channels[i + 1],
                                      kernel_size=3,
                                      stride=2,
-                                     bias=True,
-                                     )
+                                     bias=True),
+            nn.InstanceNorm2d(channels[i + 1]),
+            MemoryEfficientSwish() if not onnx_export else Swish(),
+            )
             for i in range(len(channels) - 1)])
 
 
