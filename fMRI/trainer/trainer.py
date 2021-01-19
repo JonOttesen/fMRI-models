@@ -28,7 +28,7 @@ class Trainer(BaseTrainer):
                  valid_data_loader: torch.utils.data.dataloader = None,
                  lr_scheduler: torch.optim.lr_scheduler = None,
                  seed: int = None,
-                 mixed_precision: bool = False,
+                 device: str = None,
                  ):
 
         super().__init__(model=model,
@@ -37,7 +37,8 @@ class Trainer(BaseTrainer):
                          optimizer=optimizer,
                          config=config,
                          lr_scheduler=lr_scheduler,
-                         seed=seed)
+                         seed=seed,
+                         device=device)
 
         self.data_loader = data_loader
         self.valid_data_loader = valid_data_loader
@@ -48,11 +49,6 @@ class Trainer(BaseTrainer):
         self.len_epoch = len(data_loader) if not self.iterative else self.images_pr_iteration
         self.batch_size = data_loader.batch_size
         self.log_step = int(self.len_epoch/(4*self.batch_size))
-        self.mixed_precision = mixed_precision
-        if mixed_precision:
-            self.scaler = torch.cuda.amp.GradScaler()
-        else:
-            self.scaler = None
 
     def _train_epoch(self, epoch):
         """
@@ -68,18 +64,11 @@ class Trainer(BaseTrainer):
             data, target = data.to(self.device), target.to(self.device)
 
             self.optimizer.zero_grad()
-            if self.mixed_precision:
-                with torch.cuda.amp.autocast():
-                    output = self.model(data)
-                    loss = self.loss_function(output, target)
-                self.scaler.scale(loss).backward()
-                self.scaler.step(self.optimizer)
-                self.scaler.update()
-            else:
-                output = self.model(data)
-                loss = self.loss_function(output, target)
-                loss.backward()
-                self.optimizer.step()
+
+            output = self.model(data)
+            loss = self.loss_function(output, target)
+            loss.backward()
+            self.optimizer.step()
 
             loss = loss.item()  # Detach loss from comp graph and moves it to the cpu
             losses['loss'].append(loss)

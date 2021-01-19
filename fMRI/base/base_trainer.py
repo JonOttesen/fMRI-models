@@ -29,7 +29,9 @@ class BaseTrainer:
                  optimizer: torch.optim,
                  config: dict,
                  lr_scheduler: torch.optim.lr_scheduler = None,
-                 seed: int = None):
+                 seed: int = None,
+                 device: str = None,
+                 ):
 
         # Reproducibility is a good thing
         if isinstance(seed, int):
