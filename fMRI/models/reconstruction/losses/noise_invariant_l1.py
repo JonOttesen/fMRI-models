@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class NoiseInvariantL1(nn.Module):
     """
     Just testing out some noise invarience for L1 loss
@@ -30,7 +29,8 @@ class NoiseInvariantL1(nn.Module):
         """
         if sigma is None:
             sigma = torch.std(Y[:, :, :50, :50]).cpu().item()
-        print(sigma)
+            print(Y[:, :, :50, :50].shape)
+
         l1 = self.l1(X, Y)
         factor = 1 - torch.exp(-(l1 - sigma)**2/(2*sigma**2))
         loss = l1*factor
