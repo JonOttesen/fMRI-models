@@ -31,7 +31,7 @@ class NoiseInvariantL1(nn.Module):
             sigma = Y[:, :, :50, :50].detach().std(axis=(1, 2, 3), keepdim=True)
 
         l1 = self.l1(X, Y)
-        factor = 1 - torch.exp(-(l1 - sigma)**2/(2*sigma**2))
+        factor = 1 - torch.exp(-(X-Y)**2/(2*sigma**2))
         loss = l1*factor
 
         return torch.mean(loss)
