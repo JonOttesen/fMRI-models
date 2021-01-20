@@ -29,8 +29,8 @@ class NoiseInvariantL1(nn.Module):
             data_range (float): Difference between maximum and minimum value
         """
         if sigma is None:
-            sigma = torch.std(Y[:, :50, :50]).cpu().item()
-
+            sigma = torch.std(Y[:, :, :50, :50]).cpu().item()
+        print(sigma)
         l1 = self.l1(X, Y)
         factor = 1 - torch.exp(-(l1 - sigma)**2/(2*sigma**2))
         loss = l1*factor
