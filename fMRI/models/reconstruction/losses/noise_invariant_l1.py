@@ -29,7 +29,6 @@ class NoiseInvariantL1(nn.Module):
         """
         if sigma is None:
             sigma = torch.std(Y[:, :, :50, :50]).cpu().item()
-            print(Y[:, :, :50, :50].shape)
 
         l1 = self.l1(X, Y)
         factor = 1 - torch.exp(-(l1 - sigma)**2/(2*sigma**2))
