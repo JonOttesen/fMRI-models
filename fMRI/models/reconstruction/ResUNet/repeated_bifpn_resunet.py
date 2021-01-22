@@ -97,7 +97,14 @@ class ResUNet(nn.Module):
                             bias=bias,
                             )
 
-        self.down4_basic = BasicBlock(8*n, norm_layer=norm, activation_func=self.activation, bias=bias)
+        # Originally BasicBlock here
+        self.down4_basic = Bottleneck(channels=8*n,
+                                      mid_channels=8*n // 2,
+                                      ratio=ratio,
+                                      norm_layer=norm,
+                                      activation_func=self.activation,
+                                      bias=bias,
+                                      )
 
         # Layer furthest down
         self.bottle_middle_1 = nn.Sequential(*[Bottleneck(channels=8*n,
@@ -124,7 +131,14 @@ class ResUNet(nn.Module):
 
         # Everything from here on must be fixed... woop woop
 
-        self.up4_basic = BasicBlock(8*n, norm_layer=norm, activation_func=self.activation, bias=bias)
+        # Originally BasicBlock here
+        self.up4_basic = Bottleneck(channels=8*n,
+                                    mid_channels=8*n // 2,
+                                    ratio=ratio,
+                                    norm_layer=norm,
+                                    activation_func=self.activation,
+                                    bias=bias,
+                                    )
         self.up4_norm = norm(8*n)
         self.up4 = nn.ConvTranspose2d(in_channels=8*n,
                                         out_channels=8*n,
