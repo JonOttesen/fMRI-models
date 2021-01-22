@@ -15,15 +15,13 @@ class Bottleneck(nn.Module):
     """
 
     def __init__(self,
-                 in_channels: int,
+                 channels: int,
                  mid_channels: int,
-                 out_channels: int,
                  stride: int = 1,
                  groups: int = 1,
                  dilation: int = 1,
                  bias: bool = False,
                  ratio: float = 1./16,
-                 downsample: Optional[nn.Module] = None,
                  norm_layer: Optional[Callable[..., nn.Module]] = None,
                  activation_func: Optional[Callable[..., nn.Module]] = None,
                  ):
@@ -32,17 +30,11 @@ class Bottleneck(nn.Module):
             norm_layer = nn.BatchNorm2d
 
         stride = stride if isinstance(stride, (list, tuple)) else (stride, stride)
-        if stride[0] > 1 or stride[1] > 1 and downsample is None:
-            downsample = get_same_padding_maxPool2d()
-            downsample = downsample(kernel_size=stride, stride=stride)
-
-        self.in_channels = in_channels
-        self.out_channels = out_channels
 
         Conv2d = get_same_padding_conv2d(image_size=None)
-        self.norm0 = norm_layer(in_channels)
+        self.norm0 = norm_layer(channels)
 
-        self.conv1 = Conv2d(in_channels=in_channels,
+        self.conv1 = Conv2d(in_channels=channels,
                             out_channels=mid_channels,
                             kernel_size=1,
                             stride=1,
@@ -61,7 +53,7 @@ class Bottleneck(nn.Module):
         self.norm2 = norm_layer(mid_channels)
 
         self.conv3 = Conv2d(in_channels=mid_channels,
-                            out_channels=out_channels,
+                            out_channels=channels,
                             kernel_size=1)
 
         if activation_func is None:
@@ -69,10 +61,8 @@ class Bottleneck(nn.Module):
         else:
             self.activation = activation_func
 
-        self.se = SqueezeExcitation(channels=out_channels, ratio=ratio)
+        self.se = SqueezeExcitation(channels=channels, ratio=ratio)
 
-        self.downsample = downsample
-        self.stride = stride
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         identity = x
@@ -89,11 +79,7 @@ class Bottleneck(nn.Module):
         x = self.activation(x)
         x = self.conv3(x)
 
-        if self.downsample is not None:
-            identity = self.downsample(x)
-
         x = self.se(x)
-        if self.in_channels == self.out_channels:
-            x += identity
+        x += identity
 
         return x
