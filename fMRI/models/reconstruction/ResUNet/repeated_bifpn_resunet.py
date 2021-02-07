@@ -50,7 +50,7 @@ class ResUNet(nn.Module):
 
         self.down1_basic = BasicBlock(2*n, norm_layer=norm, activation_func=self.activation, bias=bias)
         self.down1_bottle = nn.Sequential(*[Bottleneck(channels=2*n,
-                                  mid_channels=2*n // 2,
+                                  mid_channels=2*n,
                                   ratio=ratio,
                                   norm_layer=norm,
                                   activation_func=self.activation,
@@ -66,7 +66,7 @@ class ResUNet(nn.Module):
                             )
         self.down2_basic = BasicBlock(4*n, norm_layer=norm, activation_func=self.activation, bias=bias)
         self.down2_bottle = nn.Sequential(*[Bottleneck(channels=4*n,
-                                  mid_channels=4*n // 4,
+                                  mid_channels=4*n // 2,
                                   ratio=ratio,
                                   norm_layer=norm,
                                   activation_func=self.activation,
@@ -82,7 +82,7 @@ class ResUNet(nn.Module):
                             )
         self.down3_basic = BasicBlock(8*n, norm_layer=norm, activation_func=self.activation, bias=bias)
         self.down3_bottle = nn.Sequential(*[Bottleneck(channels=8*n,
-                                  mid_channels=8*n // 4,
+                                  mid_channels=8*n // 2,
                                   ratio=ratio,
                                   norm_layer=norm,
                                   activation_func=self.activation,
@@ -108,7 +108,7 @@ class ResUNet(nn.Module):
 
         # Layer furthest down
         self.bottle_middle_1 = nn.Sequential(*[Bottleneck(channels=8*n,
-                                        mid_channels=8*n // 4,
+                                        mid_channels=8*n // 2,
                                         ratio=ratio,
                                         norm_layer=norm,
                                         activation_func=self.activation,
@@ -122,7 +122,7 @@ class ResUNet(nn.Module):
 
 
         self.bottle_middle_2 = nn.Sequential(*[Bottleneck(channels=8*n,
-                                        mid_channels=8*n // 4,
+                                        mid_channels=8*n // 2,
                                         ratio=ratio,
                                         norm_layer=norm,
                                         activation_func=self.activation,
@@ -158,7 +158,7 @@ class ResUNet(nn.Module):
 
 
         self.up3_bottle = nn.Sequential(*[Bottleneck(channels=8*n,
-                                     mid_channels=8*n // 4,
+                                     mid_channels=8*n // 2,
                                      ratio=ratio,
                                      norm_layer=norm,
                                      activation_func=self.activation,
@@ -184,7 +184,7 @@ class ResUNet(nn.Module):
 
 
         self.up2_bottle = nn.Sequential(*[Bottleneck(channels=4*n,
-                                     mid_channels=4*n // 4,
+                                     mid_channels=4*n // 2,
                                      ratio=ratio,
                                      norm_layer=norm,
                                      activation_func=self.activation,
@@ -211,7 +211,7 @@ class ResUNet(nn.Module):
 
 
         self.up1_bottle = nn.Sequential(*[Bottleneck(channels=2*n,
-                                     mid_channels=2*n // 2,
+                                     mid_channels=2*n,
                                      ratio=ratio,
                                      norm_layer=norm,
                                      activation_func=self.activation,
