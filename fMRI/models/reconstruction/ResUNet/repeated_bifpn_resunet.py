@@ -39,6 +39,13 @@ class ResUNet(nn.Module):
                                  )
 
         self.inc = BasicBlock(n, norm_layer=norm, activation_func=self.activation, bias=bias)
+        self.inc_bottle = nn.Sequential(*[Bottleneck(channels=n,
+                                            mid_channels=n,
+                                            ratio=ratio,
+                                            norm_layer=norm,
+                                            activation_func=self.activation,
+                                            bias=bias,
+                                            ) for i in range(n_repeats)])
 
         self.down1_norm = norm(n)
         self.down1 = Conv2d(in_channels=n,
@@ -234,20 +241,23 @@ class ResUNet(nn.Module):
                                   bias=bias,
                                   )
         self.out_1 = BasicBlock(n, norm_layer=norm, activation_func=self.activation, bias=bias)
-        self.final_bottle = Bottleneck(channels=n,
-                                       mid_channels=n,
-                                       ratio=ratio,
-                                       norm_layer=norm,
-                                       activation_func=self.activation,
-                                       bias=bias,
-                                       )
+
+        self.final_bottle = nn.Sequential(*[Bottleneck(channels=n,
+                                                     mid_channels=n,
+                                                     ratio=ratio,
+                                                     norm_layer=norm,
+                                                     activation_func=self.activation,
+                                                     bias=bias,
+                                                     ) for i in range(n_repeats + 1)])
+
         self.out_2 = BasicBlock(n, norm_layer=norm, activation_func=self.activation, bias=bias)
         self.outc = nn.Conv2d(in_channels=n, out_channels=1, stride=1, kernel_size=1)
 
     def forward(self, x):
 
         x = self.input_conv(x)
-        x1 = self.inc(x)
+        x = self.inc(x)
+        x1 = self.inc_bottle(x)
 
 
         x2 = self.down1(self.activation(self.down1_norm(x1)))
