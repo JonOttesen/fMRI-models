@@ -249,7 +249,6 @@ class ResUNet(nn.Module):
                                                      activation_func=self.activation,
                                                      bias=bias,
                                                      ) for i in range(n_repeats // 2 + 1)])
-        print(len(self.final_bottle))
 
         self.out_2 = BasicBlock(n, norm_layer=norm, activation_func=self.activation, bias=bias)
         self.outc = nn.Conv2d(in_channels=n, out_channels=1, stride=1, kernel_size=1)
@@ -257,7 +256,7 @@ class ResUNet(nn.Module):
     def forward(self, x):
 
         x = self.input_conv(x)
-        x1 = self.inc(x)
+        x = self.inc(x)
         x1 = self.inc_bottle(x)
 
 
