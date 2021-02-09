@@ -39,13 +39,13 @@ class ResUNet(nn.Module):
                                  )
 
         self.inc = BasicBlock(n, norm_layer=norm, activation_func=self.activation, bias=bias)
-        self.inc_bottle = nn.Sequential(*[Bottleneck(channels=n,
-                                            mid_channels=n,
-                                            ratio=ratio,
-                                            norm_layer=norm,
-                                            activation_func=self.activation,
-                                            bias=bias,
-                                            ) for i in range(n_repeats)])
+        # self.inc_bottle = nn.Sequential(*[Bottleneck(channels=n,
+                                            # mid_channels=n,
+                                            # ratio=ratio,
+                                            # norm_layer=norm,
+                                            # activation_func=self.activation,
+                                            # bias=bias,
+                                            # ) for i in range(n_repeats)])
 
         self.down1_norm = norm(n)
         self.down1 = Conv2d(in_channels=n,
@@ -256,8 +256,8 @@ class ResUNet(nn.Module):
     def forward(self, x):
 
         x = self.input_conv(x)
-        x = self.inc(x)
-        x1 = self.inc_bottle(x)
+        x1 = self.inc(x)
+        # x1 = self.inc_bottle(x)
 
 
         x2 = self.down1(self.activation(self.down1_norm(x1)))
