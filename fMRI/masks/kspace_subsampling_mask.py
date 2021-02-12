@@ -25,7 +25,7 @@ class KspaceMask:
     mask_random_uniform: returns a mask where all the data points except
         the center are uniformly randomly sampled
     """
-    MASK_TYPES = ['equidistant', 'random']
+    MASK_TYPES = ['equidistant', 'random', 'center']
 
     def __init__(self,
                  acceleration: int,
@@ -44,6 +44,7 @@ class KspaceMask:
         self.mask_type_func = {
             'equidistant': self.equidistant,
             'random': self.random_uniform,
+            'center': self.center,
             }
         self.masks = None if seed is None else {}  # Dict for storing prior created masks
 
@@ -71,6 +72,21 @@ class KspaceMask:
                 self.masks[lines] = self.mask_type_func[self.mask_type](lines)
             return self.masks[lines]
         return self.mask_type_func[self.mask_type](lines)
+
+    def center(self, lines: int) -> torch.Tensor:
+        """
+        Creates a mask by selecting only the center components of k-space
+        There are a total of lines/self.acceleration masks
+        Args:
+            lines: (int), the number of columns the mask is used for i.e k_x lines
+        returns: (torch.Tensor), shape: (lines)
+        """
+        mid = int(lines/2)
+        keep = int(lines/(2*self.acceleration))
+        mask = np.zeros(lines)
+        mask[mid - keep:mid + keep] = 1
+
+        return torch.from_numpy(mask).bool()
 
     def random_uniform(self, lines: int) -> torch.Tensor:
         """
@@ -134,7 +150,6 @@ class KspaceMask:
         return torch.from_numpy(mask).bool()
 
 if __name__=='__main__':
-    mask = KspaceMask(acceleration=4, seed=None, mask_type='equidistant')
-    for i in range(10):
-        mask(320).numpy()
+    mask = KspaceMask(acceleration=4, seed=None, mask_type='center')
+    print(np.sum(mask(320).numpy())*4)
 
