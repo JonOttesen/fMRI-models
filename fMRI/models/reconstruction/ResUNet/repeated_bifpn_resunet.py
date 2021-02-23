@@ -19,7 +19,7 @@ class ResUNet(nn.Module):
                  n_classes: int,
                  n: int = 128,
                  n_repeats: int = 1,
-                 BiFPN_layers: int = 4,
+                 BiFPN_layers: int = 1,
                  ratio: float = 1./8,
                  bias: bool = False,
                  activation: nn.Module = None,

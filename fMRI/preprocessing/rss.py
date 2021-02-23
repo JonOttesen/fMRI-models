@@ -8,6 +8,8 @@ class RSS(object):
 
     Calculates the RSS (residual sum of squares) in 0'th dimension
     """
+    def __init__(self, dim: int = 0):
+      self.dim = dim
 
     def __call__(self, tensor: torch.Tensor):
         """
@@ -23,8 +25,8 @@ class RSS(object):
 
         """
 
-        return torch.unsqueeze(rss(tensor, dim=0), 0)  # Add a channels dimension
+        return torch.unsqueeze(rss(tensor, dim=self.dim), self.dim)  # Add a channels dimension
 
 
     def __repr__(self):
-        return self.__class__.__name__
+        return self.__class__.__name__ + '(dim={0})'.format(self.dim)
