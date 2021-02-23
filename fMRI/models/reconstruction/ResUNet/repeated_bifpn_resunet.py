@@ -22,13 +22,14 @@ class ResUNet(nn.Module):
                  BiFPN_layers: int = 4,
                  ratio: float = 1./8,
                  bias: bool = False,
+                 activation: nn.Module = None,
                  ):
         super().__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
 
         Conv2d = get_same_padding_conv2d()
-        self.activation = MemoryEfficientSwish()
+        self.activation = MemoryEfficientSwish() if activation is None else activation
         norm = nn.InstanceNorm2d
 
         self.input_conv = Conv2d(in_channels=n_channels,
@@ -251,7 +252,7 @@ class ResUNet(nn.Module):
                                                      ) for i in range(n_repeats // 2 + 1)])
 
         self.out_2 = BasicBlock(n, norm_layer=norm, activation_func=self.activation, bias=bias)
-        self.outc = nn.Conv2d(in_channels=n, out_channels=1, stride=1, kernel_size=1)
+        self.outc = nn.Conv2d(in_channels=n, out_channels=n_classes, stride=1, kernel_size=1)
 
     def forward(self, x):
 
