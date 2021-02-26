@@ -14,6 +14,8 @@ import fMRI.models.reconstruction.VarNet.fastmri as fastmri
 
 
 from fMRI.models.reconstruction.ResUNet.repeated_bifpn_resunet import ResUNet
+from fMRI.masks import KspaceMask
+
 
 from fMRI.preprocessing import (
     KspaceToImage,
@@ -282,7 +284,7 @@ class PhaseVarNet(nn.Module):
 
     def forward(self, masked_kspace: torch.Tensor) -> torch.Tensor:
         mask = KspaceMask(acceleration=4, mask_type='center', center_fraction=0.08, seed=None)  # 4x
-        mask = mask(size)
+        mask = mask(64)
 
         sens_maps = self.sens_net(masked_kspace, mask)
         kspace_pred = masked_kspace.clone()
