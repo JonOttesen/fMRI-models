@@ -291,8 +291,9 @@ class PhaseVarNet(nn.Module):
 
         for cascade in self.cascades:
             kspace_pred = cascade(kspace_pred, masked_kspace, mask, sens_maps)
+
         x = fastmri.ifft2c(kspace_pred)
-        return fastmri.rss(torch.arctan(x[:, :, :, :, 1]/x[:, :, :, :, 0]), dim=1)
+        return fastmri.rss(torch.arctan(x[:, :, :, :, 1]/x[:, :, :, :, 0]), dim=1).unsqueeze(1)
 
 
 
