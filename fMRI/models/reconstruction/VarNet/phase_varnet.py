@@ -280,8 +280,9 @@ class PhaseVarNet(nn.Module):
                 bias = bias,
             )) for _ in range(num_cascades)])
 
-    def forward(self, masked_kspace: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-        masked_kspace = masked_kspace[:, :4]
+    def forward(self, masked_kspace: torch.Tensor) -> torch.Tensor:
+        mask = KspaceMask(acceleration=4, mask_type='center', center_fraction=0.08, seed=None)  # 4x
+        mask = mask(size)
 
         sens_maps = self.sens_net(masked_kspace, mask)
         kspace_pred = masked_kspace.clone()
