@@ -65,6 +65,8 @@ class DatasetEntry(object):
                 image = self.open_hdf5(self.image_path)
             elif suffix in ['.nii', '.gz']:
                 image = self.open_nifti(self.image_path)
+            else:
+                raise TypeError('cannot open file: ', self.image_path)
 
         return image
 
@@ -90,11 +92,9 @@ class DatasetEntry(object):
         else:
             img = self.open(open_func=open_func)
             try:
-                shape = img.shape
-            except:
                 shape = img[keyword].shape
-            else:
-                shape = None
+            except:
+                shape = img.shape
 
             self.shape = shape
 

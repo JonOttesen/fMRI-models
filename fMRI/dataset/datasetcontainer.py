@@ -110,6 +110,45 @@ class DatasetContainer(object):
         new_container.from_dict(data)
         return new_container
 
+    def from_folder(self,
+                    path: Union[str, Path],
+                    datasetname: str,
+                    dataset_type: str,
+                    source: str = 'Some source',
+                    dataset_description: str = 'Some description',
+                  ):
+        if isinstance(path, str):
+            path = Path(path)
+        elif not isinstance(path, Path):
+            raise TypeError('path argument is {}, expected type is pathlib.Path or str'.format(type(path)))
+
+        path = path.absolute()
+        files = list(path.glob('*'))
+
+        info = DatasetInfo(
+            datasetname=datasetname,
+            dataset_type=dataset_type,
+            source=source,
+            dataset_description=dataset_description
+            )
+
+        self.add_info(info=info)
+
+        for file in tqdm(files):
+            filename = file.name
+
+            entry = DatasetEntry(
+                image_path=file,
+                datasetname=datasetname,
+                dataset_type=dataset_type,
+                )
+
+            self.add_entry(entry=entry)
+
+        self.add_shapes()
+
+        return self
+
 
     def fastMRI(self,
                 path: Union[str, Path],

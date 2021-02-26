@@ -12,7 +12,7 @@ class ZNormalization(object):
     ZNormalizes the image by (x-mean(x))/(std(x))
     along the specified dimension
     """
-    def __init__(self, dim: int = 0, inplace: bool = False):
+    def __init__(self, dim: int = 1, inplace: bool = False):
         """
         Args:
             dim (int): the dimension for the normalization. For shape (i, j, k, ...) dim=0
@@ -37,7 +37,6 @@ class ZNormalization(object):
                            std=tensor.std(axis=norm_dim),
                            inplace=self.inplace,
                            )
-
         return norm
 
     def __repr__(self):
