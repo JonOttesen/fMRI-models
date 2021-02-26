@@ -284,7 +284,7 @@ class PhaseVarNet(nn.Module):
 
     def forward(self, masked_kspace: torch.Tensor) -> torch.Tensor:
         mask = KspaceMask(acceleration=4, mask_type='center', center_fraction=0.08, seed=None)  # 4x
-        mask = mask(64)
+        mask = mask(64).to(masked_kspace)
 
         sens_maps = self.sens_net(masked_kspace, mask)
         kspace_pred = masked_kspace.clone()
