@@ -29,6 +29,7 @@ class Trainer(BaseTrainer):
                  lr_scheduler: torch.optim.lr_scheduler = None,
                  seed: int = None,
                  device: str = None,
+                 log_step: int = None,
                  ):
 
         super().__init__(model=model,
@@ -48,7 +49,7 @@ class Trainer(BaseTrainer):
 
         self.len_epoch = len(data_loader) if not self.iterative else self.images_pr_iteration
         self.batch_size = data_loader.batch_size
-        self.log_step = int(self.len_epoch/(4*self.batch_size))
+        self.log_step = int(self.len_epoch/(4*self.batch_size)) if not isinstance(log_step, int) else log_step
 
     def _train_epoch(self, epoch):
         """
