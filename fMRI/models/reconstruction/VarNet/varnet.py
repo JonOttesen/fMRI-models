@@ -208,11 +208,13 @@ class SensitivityModel(nn.Module):
 
     def forward(self, masked_kspace: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         # get low frequency line locations and mask them out
-        cent = mask.shape[-1] // 2
-        left = torch.nonzero(mask[:cent] == 0)[-1]
-        right = torch.nonzero(mask[cent:] == 0)[0] + cent
+        cent = mask.shape[-2] // 2
+
+        cent = mask.shape[-2] // 2
+        left = torch.nonzero(mask.squeeze()[:cent] == 0)[-1]
+        right = torch.nonzero(mask.squeeze()[cent:] == 0)[0] + cent
         num_low_freqs = right - left
-        pad = (mask.shape[-1] - num_low_freqs + 1) // 2
+        pad = (mask.shape[-2] - num_low_freqs + 1) // 2
 
         x = self.mask_center(masked_kspace, pad, pad + num_low_freqs)
 
@@ -280,9 +282,16 @@ class VarNet(nn.Module):
                 bias = bias,
             )) for _ in range(num_cascades)])
 
-    def forward(self, masked_kspace: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-        masked_kspace = masked_kspace[:, :4]
+    def calculate_mask(self, masked_kspace: torch.Tensor):
+        x = masked_kspace[:, :, :, :, 0]**2 + masked_kspace[:, :, :, :, 1]**2
+        x = torch.sum(x, dim=1, keepdim=True)
+        x = torch.sum(x, dim=2, keepdim=True).unsqueeze(-1)
+        x = x != 0
+        return x
 
+
+    def forward(self, masked_kspace: torch.Tensor) -> torch.Tensor:
+        mask = self.calculate_mask(masked_kspace)
         sens_maps = self.sens_net(masked_kspace, mask)
         kspace_pred = masked_kspace.clone()
 
@@ -330,7 +339,6 @@ class VarNetBlock(nn.Module):
         ) -> torch.Tensor:
 
         zero = torch.zeros(1, 1, 1, 1, 1).to(current_kspace)
-        mask = mask.unsqueeze(0).unsqueeze(0).unsqueeze(0).unsqueeze(-1)  # Extending 1D mask to 4D
 
         soft_dc = torch.where(mask, current_kspace - ref_kspace, zero) * self.dc_weight
         model_term = self.sens_expand(
