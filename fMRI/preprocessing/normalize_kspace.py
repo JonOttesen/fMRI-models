@@ -28,12 +28,11 @@ class NormalizeKspace(object):
             torch.Tensor: The real phase images with equal shape
 
         """
-        x = tensor.copy()
+        x = tensor.clone()
         lines = tensor.shape[2]
         cent = tensor.shape[2] // 2
         frac = int(lines*self.center_fraction // 2)
         mxx = torch.max(torch.abs(x[:, :, cent-frac:cent+frac]))
-        print(mxx)
         tensor = tensor/mxx
 
         return tensor
