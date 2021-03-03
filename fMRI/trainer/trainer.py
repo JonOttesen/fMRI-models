@@ -73,7 +73,6 @@ class Trainer(BaseTrainer):
 
             loss = loss.item()  # Detach loss from comp graph and moves it to the cpu
             losses['loss'].append(loss)
-            print(loss)
 
             if batch_idx % self.log_step == 0:
                 self.logger.info('Train {}: {} {} Loss: {:.6f}'.format(
@@ -84,6 +83,8 @@ class Trainer(BaseTrainer):
 
             if batch_idx*self.batch_size >= self.images_pr_iteration and self.iterative:
                 break
+
+            break
 
         losses['loss_func'] = str(self.loss_function)
 
@@ -108,6 +109,7 @@ class Trainer(BaseTrainer):
 
                 output = self.model(data)
                 metrics['loss'].append(self.loss_function(output, target).item())
+                print(self.loss_function(output, target).item())
 
                 for key, metric in self.metric_ftns.items():
                     if self.metrics_is_dict:
