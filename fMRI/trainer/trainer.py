@@ -84,8 +84,6 @@ class Trainer(BaseTrainer):
             if batch_idx*self.batch_size >= self.images_pr_iteration and self.iterative:
                 break
 
-            break
-
         losses['loss_func'] = str(self.loss_function)
 
         return losses
@@ -102,7 +100,6 @@ class Trainer(BaseTrainer):
 
         self.model.eval()
         metrics = defaultdict(list)
-        print('validation')
 
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
@@ -110,7 +107,6 @@ class Trainer(BaseTrainer):
 
                 output = self.model(data)
                 metrics['loss'].append(self.loss_function(output, target).item())
-                print(self.loss_function(output, target).item())
 
                 for key, metric in self.metric_ftns.items():
                     if self.metrics_is_dict:
