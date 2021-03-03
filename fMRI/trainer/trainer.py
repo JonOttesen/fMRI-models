@@ -73,6 +73,7 @@ class Trainer(BaseTrainer):
 
             loss = loss.item()  # Detach loss from comp graph and moves it to the cpu
             losses['loss'].append(loss)
+            print(loss)
 
             if batch_idx % self.log_step == 0:
                 self.logger.info('Train {}: {} {} Loss: {:.6f}'.format(
