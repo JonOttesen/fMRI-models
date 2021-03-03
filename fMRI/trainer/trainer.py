@@ -102,6 +102,7 @@ class Trainer(BaseTrainer):
 
         self.model.eval()
         metrics = defaultdict(list)
+        print('validation')
 
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
