@@ -1,2 +1,2 @@
-from .UNet import RELUUNet, GELUUNet
+from .UNet import RELUUNet
 from .ResUNet import ResUNet

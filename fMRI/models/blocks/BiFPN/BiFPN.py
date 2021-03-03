@@ -11,7 +11,7 @@ from ..utils import Conv2dDynamicSamePadding
 class SeparableConvBlock(nn.Module):
     """
     created by Zylo117 modified by JonOttesen
-    Source: https://github.com.cnpmjs.org/zylo117/Yet-Another-EfficientDet-Pytorch/blob/master/efficientdet/model.py
+    Source: https://github.com/zylo117/Yet-Another-EfficientDet-Pytorch
     """
 
     def __init__(self,
