@@ -20,12 +20,14 @@ class ModelEntry(object):
                  model_path: Union[Path, str] = None,
                  model_description: str = None,
                  dataset_container: DatasetContainer = None,
+                 keyword: str = '',
                  ):
         self.logger = get_logger(name=__name__)
         self.model_name = model_name
         self.model_path = str(model_path)
         self.model_description = model_description
         self.dataset_container = dataset_container
+        self.keyword = keyword
 
     def __str__(self):
         return str(self.to_dict())
@@ -48,11 +50,12 @@ class ModelEntry(object):
         if isinstance(self.dataset_container, DatasetContainer):
             dataset_container = self.dataset_container.to_dict()
         else:
-            dataset_container = dataset_container
+            dataset_container = self.dataset_container
         return {'model_name': self.model_name,
                 'model_path': str(self.model_path),
                 'model_description': self.model_description,
-                'dataset_container': dataset_container
+                'keyword': self.keyword,
+                'dataset_container': dataset_container,
                 }
 
     def from_dict(self, in_dict: dict):
@@ -65,6 +68,7 @@ class ModelEntry(object):
             self.model_name = in_dict['model_name']
             self.model_path = in_dict['model_path']
             self.model_description = in_dict['model_description']
+            self.keyword = in_dict['keyword']
             dataset_container = in_dict['dataset_container']
         if isinstance(dataset_container, dict):
             self.dataset_container = DatasetContainer()

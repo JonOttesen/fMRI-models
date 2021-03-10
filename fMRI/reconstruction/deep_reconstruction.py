@@ -10,12 +10,14 @@ class DeepReconstruction:
 
     def __init__(self,
                  model: torch.nn.Module,
-                 use_cuda: bool = True):
+                 use_cuda: bool = True,
+                 device: str = 'cuda:0',
+                 ):
 
-        self.device = torch.device('cuda:0' if use_cuda else 'cpu')
+        self.device = torch.device(device if use_cuda else 'cpu')
         self.model = model.to(self.device)
 
-    def reconstruct(self, tensor: Union[torch.Tensor]):
+    def __call__(self, tensor: Union[torch.Tensor]):
         """
         Args:
             tensor (torch.Tensor): input tensor with size (c, h, w)
@@ -29,7 +31,7 @@ class DeepReconstruction:
 
         with torch.no_grad():
             tensor = tensor.to(self.device)
-            prediction = self.model(tensor).cpu()
+            prediction = self.model(tensor).detach().cpu()
 
         return prediction
 
