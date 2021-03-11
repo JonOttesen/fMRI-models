@@ -11,16 +11,14 @@ class DownsampleFOV(object):
 
     Downsamples the FOV by fourier than cropping than inverse fouirer
     """
-    def __init__(self, dim: int = 2, crop_size: int = 320, size: int = 64):
+    def __init__(self, k_size: int = 320, i_size: int = 320):
         """
         Args:
             dim (int): the dimension for downsampling, 1 for height and 2 for width
             size (int): the length of k-space along the dim direction
         """
-        assert dim in [1, 2], "dim need to be either 1 or 2"
-        self.dim = dim
-        self.size = size
-        self.crop_size = crop_size
+        self.k_size = k_size
+        self.i_size = i_size
 
     def __call__(self, tensor: torch.Tensor):
         """
@@ -32,20 +30,19 @@ class DownsampleFOV(object):
             torch.Tensor: The real phase images with equal shape
 
         """
-        height, width = tensor.shape[-2], tensor.shape[-1]
-        cropping = (self.crop_size, width) if self.dim==1 else (height, self.crop_size)
-        fft = KspaceToImage(norm='forward')
-        ifft = ImageToKspace(norm='forward')
-        crop = torchvision.transforms.CenterCrop(cropping)
-        k_crop = torchvision.transforms.CenterCrop(self.size)
+
+        fft = KspaceToImage(norm='ortho')
+        ifft = ImageToKspace(norm='ortho')
+        i_crop = torchvision.transforms.CenterCrop(self.i_size)
+        k_crop = torchvision.transforms.CenterCrop(self.k_size)
 
         tensor = fft(tensor)
-        tensor = crop(tensor)
+        tensor = i_crop(tensor)
         tensor = ifft(tensor)
         tensor = k_crop(tensor)
         return tensor
 
 
     def __repr__(self):
-        return self.__class__.__name__ + '(dim={0}, size={1})'.format(self.dim, self.size)
+        return self.__class__.__name__ + '(k_size={0}, i_size={1})'.format(self.k_size, self.i_size)
 
