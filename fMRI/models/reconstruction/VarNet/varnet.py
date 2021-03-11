@@ -16,15 +16,8 @@ import fMRI.models.reconstruction.VarNet.fastmri as fastmri
 from fMRI.models.reconstruction.ResUNet.repeated_bifpn_resunet import ResUNet
 
 from fMRI.preprocessing import (
-    KspaceToImage,
-    PadKspace,
-    ComplexNumpyToTensor,
-    CropImage,
-    ZNormalization,
-    ComplexAbsolute,
-    RSS,
-    PhaseImage,
-    ImageToKspace,
+    NormalizeKspace,
+    ComplexSplit,
     )
 
 class NormResUnet(nn.Module):
@@ -247,6 +240,8 @@ class VarNet(nn.Module):
         BiFPN_layers: int = 0,
         ratio: float = 1./8,
         bias: bool = True,
+        inference: bool = False,
+        center_fraction: bool = 0.08,
         ):
         """
         Args:
@@ -260,6 +255,8 @@ class VarNet(nn.Module):
                 U-Net.
         """
         super().__init__()
+        self.inference = inference
+        self.center_fraction = center_fraction
 
         self.sens_net = SensitivityModel(
             n_channels = 2,
@@ -289,14 +286,28 @@ class VarNet(nn.Module):
         x = x != 0
         return x
 
+    def normalize_kspace(self, masked_kspace: torch.Tensor) -> torch.Tensor:
+        masked_kspace, maxx = NormalizeKspace(center_fraction=self.center_fraction, return_max=True)(masked_kspace)
+        self.maxx = maxx
+        return masked_kspace
 
     def forward(self, masked_kspace: torch.Tensor) -> torch.Tensor:
+        if self.inference:
+            assert masked_kspace.dtype in [torch.complex32, torch.complex64, torch.complex128],\
+            "in inference, input must be of complex tensor"
+            masked_kspace = self.normalize_kspace(masked_kspace)
+            masked_kspace = ComplexSplit()(masked_kspace)
+
+
         mask = self.calculate_mask(masked_kspace)
         sens_maps = self.sens_net(masked_kspace, mask)
         kspace_pred = masked_kspace.clone()
 
         for cascade in self.cascades:
             kspace_pred = cascade(kspace_pred, masked_kspace, mask, sens_maps)
+
+        if self.inference:
+            kspace_pred = kspace_pred*self.maxx
 
         return fastmri.rss(fastmri.complex_abs(fastmri.ifft2c(kspace_pred)), dim=1).unsqueeze(1)
 

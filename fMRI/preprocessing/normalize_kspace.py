@@ -10,13 +10,14 @@ class NormalizeKspace(object):
 
     Downsamples the FOV by fourier than cropping than inverse fouirer
     """
-    def __init__(self, center_fraction: float = 0.04):
+    def __init__(self, center_fraction: float = 0.08, return_max: bool = False):
         """
         Args:
             dim (int): the dimension for downsampling, 1 for height and 2 for width
             size (int): the length of k-space along the dim direction
         """
         self.center_fraction = center_fraction
+        self.return_max = return_max
 
     def __call__(self, tensor: torch.Tensor):
         """
@@ -34,6 +35,9 @@ class NormalizeKspace(object):
         frac = int(lines*self.center_fraction // 2)
         mxx = torch.max(torch.abs(x[:, :, cent-frac:cent+frac]))
         tensor = tensor/mxx
+
+        if self.return_max:
+            return tensor, mxx
 
         return tensor
 
