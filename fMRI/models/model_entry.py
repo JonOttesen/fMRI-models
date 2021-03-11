@@ -35,6 +35,9 @@ class ModelEntry(object):
     def __getitem__(self, index):
         return self.dataset_container[index]
 
+    def __len__(self):
+        return len(self.dataset_container)
+
     def add_dataset_container(self, dataset_container: DatasetContainer):
         assert isinstance(dataset_container, DatasetContainer), 'input must be DatasetContainer not {}'.format(type(dataset_container))
         self.dataset_container = deepcopy(dataset_container)
