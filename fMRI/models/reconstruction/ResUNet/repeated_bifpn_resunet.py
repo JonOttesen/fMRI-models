@@ -277,8 +277,6 @@ class ResUNet(nn.Module):
         x = self.down4_basic(x)
         x = self.bottle_middle_1(x)
 
-        print(x1.shape, x2.shape, x3.shape, x4.shape, x.shape)
-
         inputs = [x1, x2, x3, x4, x]
         for bifpn in self.bifpns:
             inputs = bifpn(inputs)
