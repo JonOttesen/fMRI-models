@@ -126,6 +126,7 @@ class BiFPN(nn.Module):
 
         # The downsampling, only with convolutional layers to allow different number of channels
         # This is the four arrows going upwards in the figure (i.e lower spatial dimension) on the last column
+        """
         self.down_layers = nn.ModuleList([nn.Sequential(
             nn.Conv2d(in_channels=channels[i],
                       out_channels=channels[i + 1],
@@ -148,7 +149,7 @@ class BiFPN(nn.Module):
             MemoryEfficientSwish() if not onnx_export else Swish(),
             )
             for i in range(len(channels) - 1)])
-        """
+        # """
 
         self.swish = MemoryEfficientSwish() if not onnx_export else Swish()
 
