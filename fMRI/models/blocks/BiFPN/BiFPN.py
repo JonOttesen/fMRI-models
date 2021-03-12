@@ -236,8 +236,9 @@ class BiFPN(nn.Module):
         weights = self.weight_relu(self.out_attention[-1])
         weight = weights / (torch.sum(weights, dim=0) + self.epsilon)
 
-        z = self.out_conv[-1](self.swish(inputs[-1]*weight[0] + self.down_layers[-1](x)*weight[1]))
-        outputs.append(z)
+        x = self.swish(inputs[-1]*weight[0] + self.down_layers[-1](x)*weight[1])
+        x = self.out_conv[-1](x)
+        outputs.append(x)
 
         return outputs
 
