@@ -46,7 +46,6 @@ class KspaceMask:
             'random': self.random_uniform,
             'center': self.center,
             }
-        self.masks = None if seed is None else {}  # Dict for storing prior created masks
 
     @property
     def mask_type(self):
@@ -66,11 +65,6 @@ class KspaceMask:
             lines: (int), the number of columns the mask is used for i.e k_x lines
         returns: (torch.Tensor), shape: (lines)
         """
-        # No point recreating the same masks every time if I am using a seed anyway
-        if self.masks is not None:
-            if lines not in self.masks.keys():
-                self.masks[lines] = self.mask_type_func[self.mask_type](lines)
-            return self.masks[lines]
         return self.mask_type_func[self.mask_type](lines)
 
     def center(self, lines: int) -> torch.Tensor:
