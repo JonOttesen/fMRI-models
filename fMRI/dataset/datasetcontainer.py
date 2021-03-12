@@ -1,5 +1,6 @@
 import json
 import random
+import contextlib
 
 from pathlib import Path
 from typing import Union, List
@@ -12,6 +13,19 @@ from tqdm import tqdm
 from .datasetentry import DatasetEntry
 from .datasetinfo import DatasetInfo
 from ..logger import get_logger
+
+@contextlib.contextmanager
+def temp_seed(seed):
+    """
+    Source:
+    https://stackoverflow.com/questions/49555991/can-i-create-a-local-numpy-random-seed
+    """
+    state = random.getstate()
+    random.seed(seed)
+    try:
+        yield
+    finally:
+        random.setstate(state)
 
 
 class DatasetContainer(object):
@@ -36,9 +50,26 @@ class DatasetContainer(object):
     def __str__(self):
         return str(self.to_dict())
 
+    def split(self, seed, split: float = 0.5):
+        self.shuffle(seed=seed)
+        split_1 = DatasetContainer()
+        split_2 = DatasetContainer()
+        for info in self.info:
+            split_1.add_info(deepcopy(info))
+            split_2.add_info(deepcopy(info))
+
+        with temp_seed(seed=seed):
+            for i, entry in enumerate(self):
+                rand = random.uniform(0, 1)
+                if rand <= split:
+                    split_1.add_entry(deepcopy(entry))
+                else:
+                    split_2.add_entry(deepcopy(entry))
+        return split_1, split_2
+
     def shuffle(self, seed=None):
-        random.seed(seed)
-        random.shuffle(self.entries)
+        with temp_seed(seed):
+            random.shuffle(self.entries)
 
     def info_dict(self):
         info_dict = dict()

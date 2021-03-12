@@ -129,7 +129,7 @@ class BiFPN(nn.Module):
         self.down_layers = nn.ModuleList([nn.Sequential(
             Conv2dDynamicSamePadding(in_channels=channels[i],
                                      out_channels=channels[i + 1],
-                                     kernel_size=3,
+                                     kernel_size=2, # originally 3x3 in the wrong implementation
                                      stride=2,
                                      bias=True),
             nn.InstanceNorm2d(channels[i + 1]),
