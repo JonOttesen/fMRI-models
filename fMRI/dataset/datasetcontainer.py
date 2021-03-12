@@ -14,6 +14,7 @@ from .datasetentry import DatasetEntry
 from .datasetinfo import DatasetInfo
 from ..logger import get_logger
 
+
 @contextlib.contextmanager
 def temp_seed(seed):
     """
@@ -51,19 +52,23 @@ class DatasetContainer(object):
         return str(self.to_dict())
 
     def split(self, seed, split: float = 0.5):
+        dataset = deepcopy(self)
+        dataset.shuffle(seed=seed)
+
         split_1 = DatasetContainer()
         split_2 = DatasetContainer()
         for info in self.info:
             split_1.add_info(deepcopy(info))
             split_2.add_info(deepcopy(info))
 
-        with temp_seed(seed=seed):
-            for i, entry in enumerate(self):
-                rand = random.uniform(0, 1)
-                if rand <= split:
-                    split_1.add_entry(deepcopy(entry))
-                else:
-                    split_2.add_entry(deepcopy(entry))
+        split_number = split*len(dataset)
+
+        for i, entry in enumerate(dataset):
+            i += 1
+            if i <= split_number:
+                split_1.add_entry(deepcopy(entry))
+            else:
+                split_2.add_entry(deepcopy(entry))
         return split_1, split_2
 
     def shuffle(self, seed=None):
