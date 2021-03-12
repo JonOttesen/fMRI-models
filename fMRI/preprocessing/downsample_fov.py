@@ -39,7 +39,10 @@ class DownsampleFOV(object):
         tensor = fft(tensor)
         tensor = i_crop(tensor)
         tensor = ifft(tensor)
-        tensor = k_crop(tensor)
+
+        if not self.k_size == self.i_size:
+            tensor = k_crop(tensor)
+
         return tensor
 
 
