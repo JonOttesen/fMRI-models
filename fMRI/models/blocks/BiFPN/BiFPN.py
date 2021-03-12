@@ -133,7 +133,7 @@ class BiFPN(nn.Module):
                       kernel_size=2,
                       stride=2,
                       bias=True),
-            nn.InstanceNorm2d(channels[i + 1]),
+            # nn.InstanceNorm2d(channels[i + 1]),
             MemoryEfficientSwish() if not onnx_export else Swish(),
             )
             for i in range(len(channels) - 1)])
