@@ -130,9 +130,10 @@ class BiFPN(nn.Module):
         self.down_layers = nn.ModuleList([nn.Sequential(
             nn.Conv2d(in_channels=channels[i],
                       out_channels=channels[i + 1],
-                      kernel_size=2,
+                      kernel_size=3,
                       stride=2,
-                      bias=True),
+                      bias=True,
+                      padding=1),
             nn.InstanceNorm2d(channels[i + 1]),
             MemoryEfficientSwish() if not onnx_export else Swish(),
             )
@@ -236,8 +237,7 @@ class BiFPN(nn.Module):
         weights = self.weight_relu(self.out_attention[-1])
         weight = weights / (torch.sum(weights, dim=0) + self.epsilon)
 
-        x = self.down_layers[-1](x)*weight[1]
-        x = self.out_conv[-1](self.swish(inputs[-1]*weight[0] + x))
+        x = self.out_conv[-1](self.swish(inputs[-1]*weight[0] + self.down_layers[-1](x)*weight[1]))
         outputs.append(x)
 
         return outputs
