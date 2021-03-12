@@ -51,7 +51,6 @@ class DatasetContainer(object):
         return str(self.to_dict())
 
     def split(self, seed, split: float = 0.5):
-        self.shuffle(seed=seed)
         split_1 = DatasetContainer()
         split_2 = DatasetContainer()
         for info in self.info:
